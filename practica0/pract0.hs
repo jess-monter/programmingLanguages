@@ -31,6 +31,7 @@ pot n (Suc m) = prod (pot n m) n
 --Menor entre dos naturales, true si el primero argumento es menor que el segundo, false eoc
 --menor::N->N->Bool
 --funcion Pendiente
+--PRUEBA GITHUB
 
 --Igualdad entre dos naturales
 igual::N->N->Bool
