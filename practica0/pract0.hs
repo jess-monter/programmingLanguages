@@ -29,9 +29,9 @@ pot n (Suc m) = prod (pot n m) n
 
 
 --Menor entre dos naturales, true si el primero argumento es menor que el segundo, false eoc
---menor::N->N->Bool
---funcion Pendiente
---PRUEBA GITHUB
+menor::N->N->Bool
+menor n Zero = False
+menor Zero (Suc Zero) = False
 
 --Igualdad entre dos naturales
 igual::N->N->Bool
@@ -46,8 +46,13 @@ data DNat = Cero | D DNat | U DNat deriving Show
 
 
 ----Para simplificar un DNat.
---simplDN :: DNat -> DNat
-
+simplDN :: DNat -> DNat
+simplDN  Cero = Cero
+simplDN (D Cero) = Cero
+simplDN (D n) = f $ D $ simplDN n where
+								f (D Cero) = Cero
+								f (D n) = D $ simplDN n
+simplDN (U n) = U $ simplDN n  --U = 2n+1, D = 2n
 
 ----Sucesor de un DNat.
 --sucDN :: DNat->DNat
