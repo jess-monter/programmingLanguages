@@ -55,8 +55,10 @@ simplDN (D n) = f $ D $ simplDN n where
 simplDN (U n) = U $ simplDN n  --U = 2n+1, D = 2n
 
 ----Sucesor de un DNat.
---sucDN :: DNat->DNat
-
+sucDN :: DNat->DNat
+sucDN Cero = U Cero
+sucDN (D n) = U(sucDN n)
+sucDN (U n) = D(sucDN n)
 
 ----Predecesor de un número DNat.
 --predDN :: DNat->DNat
@@ -78,13 +80,18 @@ simplDN (U n) = U $ simplDN n  --U = 2n+1, D = 2n
 --zToDNat :: Int->DNat
 
 
---{- Listas -}
-----Elimina repeticiones de una lista.
---toSet::Eq a=>[a]->[a]
+{- Listas -}
+--Elimina repeticiones de una lista.
+toSet::Eq a=>[a]->[a]
+toSet [] = []
+toSet (x:xs) = x:(filter (x/=) S toSet xs)
 
 
-----Cuenta el número de apariciones de un elemento en una lista.
---cuantas::Eq a=>a->[a]->Int
+--Cuenta el número de apariciones de un elemento en una lista.
+cuantas::Eq a=>a->[a]->Int
+cuantas _ [] = 0
+cuantas x (y:ys) = if x == y then 1+(cuantas x ys)
+		else cuantas x ys
 
 
 ----Cuentas las apariciones de cada elemento en la lista.
