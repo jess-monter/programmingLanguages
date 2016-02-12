@@ -30,8 +30,10 @@ pot n (Suc m) = prod (pot n m) n
 
 --Menor entre dos naturales, true si el primero argumento es menor que el segundo, false eoc
 menor::N->N->Bool
+menor Zero Zero = False
+menor Zero n = True
 menor n Zero = False
-menor Zero (Suc Zero) = False
+menor (Suc n) (Suc m) = menor n m
 
 --Igualdad entre dos naturales
 igual::N->N->Bool
@@ -92,10 +94,11 @@ prodDN (U n) (D m) = D (sumaDN (prodDN n m) m)
 prodDN (U n) (U m) = U (sumaDN (sumaDN ( D(prodDN n m) ) n) m)
 
 ----Transforma un entero positivo a su representación en DNat.
---zToDNat :: Int->DNat
---zToDNat 0 = Cero
---zToDNat 1 = U Cero
-
+zToDNat :: Int->DNat
+zToDNat 0 = Cero
+zToDNat 1 = U Cero
+zToDNat n = if n `mod` 2 == 0 then D(zToDNat (div n 2))
+                              else U(zToDNat (div (n-1) 2))
 
 
 {- Listas -}
@@ -117,14 +120,14 @@ cuantas x (y:ys) = if x == y then 1+(cuantas x ys)
 
 
 ----Nos da los elementos que aparecen una sola vez.
---unaVez::Eq a=>[a]->[a]
-
+unaVez::Eq a=>[a]->[a]
+unaVez xs = [x | x <- xs, cuantas x xs==1]
 
 --{- Retos -}
 compress1::String->String
-compress1 xs = map head words (xs)
+compress1 xs = map head $ words xs
 
-
+ 
 --compress2::String->String
 
 
