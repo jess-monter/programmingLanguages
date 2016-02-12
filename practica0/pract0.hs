@@ -64,7 +64,7 @@ sucDN (U n) = D(sucDN n)
 ----Predecesor de un número DNat.
 predDN :: DNat->DNat
 predDN Cero = error "Cero no tiene predecesor"
-predDN (D Cero) = error "Cero no tiene predecesor"
+predDN (U Cero) = Cero
 predDN (D n) = U (predDN n)
 predDN (U n) = D n
 
@@ -75,12 +75,20 @@ dNToZ (D n) = (dNToZ n) * 2
 dNToZ (U n) = (dNToZ n) * 2 + 1
 
 ----Suma dos números DNat.
---sumaDN :: DNat->DNat->DNat
-
+sumaDN :: DNat->DNat->DNat
+sumaDN Cero n = n
+sumaDN n Cero = n
+sumaDN (D n) (D m) = D (sumaDN n m)
+sumaDN (D n) (U m) = U (sumaDN n m)
+sumaDN (U n) (U m) = D (sucDN (sumaDN n m))
 
 ----Multiplica dos números DNat.
---prodDN :: DNat->DNat->DNat
-
+prodDN :: DNat->DNat->DNat
+prodDN Cero n = Cero
+prodDN n Cero = Cero
+prodDN (D n) (D m) = D (D (prodDN n m))
+prodDN (D n) (U m) = D (sumaDN (D(prodDN n m)) n)
+prodDN (U n) (U m) = U (sumaDN (sumaDN ( D(prodDN n m) ) n) m)
 
 ----Transforma un entero positivo a su representación en DNat.
 --zToDNat :: Int->DNat
