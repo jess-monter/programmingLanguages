@@ -92,6 +92,9 @@ prodDN (U n) (U m) = U (sumaDN (sumaDN ( D(prodDN n m) ) n) m)
 
 ----Transforma un entero positivo a su representación en DNat.
 --zToDNat :: Int->DNat
+--zToDNat 0 = Cero
+--zToDNat 1 = U Cero
+
 
 
 {- Listas -}
