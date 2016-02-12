@@ -62,12 +62,17 @@ sucDN (D n) = U(sucDN n)
 sucDN (U n) = D(sucDN n)
 
 ----Predecesor de un número DNat.
---predDN :: DNat->DNat
-
+predDN :: DNat->DNat
+predDN Cero = error "Cero no tiene predecesor"
+predDN (D Cero) = error "Cero no tiene predecesor"
+predDN (D n) = U (predDN n)
+predDN (U n) = D n
 
 ----Representación de un número DNat en los números enteros.
---dNToZ :: DNat->Int
-
+dNToZ :: DNat->Int
+dNToZ Cero = 0
+dNToZ (D n) = (dNToZ n) * 2
+dNToZ (U n) = (dNToZ n) * 2 + 1
 
 ----Suma dos números DNat.
 --sumaDN :: DNat->DNat->DNat
