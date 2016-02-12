@@ -88,6 +88,7 @@ prodDN Cero n = Cero
 prodDN n Cero = Cero
 prodDN (D n) (D m) = D (D (prodDN n m))
 prodDN (D n) (U m) = D (sumaDN (D(prodDN n m)) n)
+prodDN (U n) (D m) = D (sumaDN (prodDN n m) m)
 prodDN (U n) (U m) = U (sumaDN (sumaDN ( D(prodDN n m) ) n) m)
 
 ----Transforma un entero positivo a su representación en DNat.
@@ -120,7 +121,8 @@ cuantas x (y:ys) = if x == y then 1+(cuantas x ys)
 
 
 --{- Retos -}
---compress1::String->String
+compress1::String->String
+compress1 xs = map head words (xs)
 
 
 --compress2::String->String
