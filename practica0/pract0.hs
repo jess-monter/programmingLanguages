@@ -85,7 +85,7 @@ sucDN (U n) = D(sucDN n)
 --Elimina repeticiones de una lista.
 toSet::Eq a=>[a]->[a]
 toSet [] = []
---toSet (x:xs) = x:(filter (x/=) S toSet xs)
+toSet (x:xs) = x:(filter (x/=) $ toSet xs)
 
 
 --Cuenta el número de apariciones de un elemento en una lista.
