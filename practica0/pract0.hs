@@ -73,6 +73,7 @@ predDN (U n) = D n
 ----Representación de un número DNat en los números enteros.
 dNToZ :: DNat->Int
 dNToZ Cero = 0
+dNToZ (D Cero) = 0
 dNToZ (D n) = (dNToZ n) * 2
 dNToZ (U n) = (dNToZ n) * 2 + 1
 
@@ -91,8 +92,8 @@ prodDN Cero n = Cero
 prodDN n Cero = Cero
 prodDN (D n) (D m) = D (D (prodDN n m))
 prodDN (D n) (U m) = D (sumaDN (D(prodDN n m)) n)
-prodDN (U n) (D m) = D (sumaDN (prodDN n m) m)
-prodDN (U n) (U m) = U (sumaDN (sumaDN ( D(prodDN n m) ) n) m)
+prodDN (U n) (U m) = U (sumaDN (sumaDN (D(prodDN n m)) n) m)
+prodDN (U n) (D m) = D (sumaDN (D(prodDN n m)) m)
 
 ----Transforma un entero positivo a su representación en DNat.
 zToDNat :: Int->DNat
