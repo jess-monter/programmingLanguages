@@ -60,7 +60,7 @@ simplDN (U n) = U $ simplDN n  --U = 2n+1, D = 2n
 sucDN :: DNat->DNat
 sucDN Cero = U Cero
 sucDN (D Cero) = U Cero
-sucDN (D n) = U(sucDN n)
+sucDN (D n) = U n
 sucDN (U n) = D(sucDN n)
 
 ----Predecesor de un número DNat.
