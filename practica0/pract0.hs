@@ -83,6 +83,7 @@ sumaDN n Cero = n
 sumaDN (D n) (D m) = D (sumaDN n m)
 sumaDN (D n) (U m) = U (sumaDN n m)
 sumaDN (U n) (U m) = D (sucDN (sumaDN n m))
+sumaDN (U n) (D m) = U (sumaDN n m)
 
 ----Multiplica dos números DNat.
 prodDN :: DNat->DNat->DNat
@@ -100,7 +101,6 @@ zToDNat 1 = U Cero
 zToDNat n = if n `mod` 2 == 0 then D(zToDNat (div n 2))
                               else U(zToDNat (div (n-1) 2))
 
-
 {- Listas -}
 --Elimina repeticiones de una lista.
 toSet::Eq a=>[a]->[a]
@@ -116,8 +116,8 @@ cuantas x (y:ys) = if x == y then 1+(cuantas x ys)
 
 
 ----Cuentas las apariciones de cada elemento en la lista.
---frec::Eq a=>[a]->[(a,Int)]
-
+frec::Eq a=>[a]->[(a,Int)]
+frec xs = toSet [(a,cuantas a xs) | a <- xs]
 
 ----Nos da los elementos que aparecen una sola vez.
 unaVez::Eq a=>[a]->[a]
