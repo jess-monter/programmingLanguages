@@ -7,8 +7,8 @@ Facultad de Ciencias UNAM
 -}
 
 --Paréntesis balanceados.
-data M = Em | Par M | ConctM M M 
-data L = El | ConctP L L 
+data M = Em | Par M | ConctM M M deriving Show
+data L = El | ConctP L L deriving Show
 
 --Hacemos que los tipos M y L formen parte de la clase Show.
 {-Aquí debes hacer que los tipos M y L 
