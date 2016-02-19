@@ -70,6 +70,7 @@ parserM "()" = Par Em
 ----Función que convierte una cadena de texto balanceada en un objeto de tipo L.
 parserL :: String->L
 parserL "" = El
+parserL "()" = ConctP El El
 
 
 ----PRUEBAS:
