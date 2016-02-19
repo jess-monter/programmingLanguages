@@ -7,8 +7,21 @@ Facultad de Ciencias UNAM
 -}
 
 --Paréntesis balanceados.
-data M = Em | Par M | ConctM M M deriving Show
-data L = El | ConctP L L deriving Show
+data M = Em | Par M | ConctM M M
+data L = El | ConctP L L
+
+instance Show M where
+	show m = case m of
+					  Em -> ""
+					  Par m1 -> "(" ++ show m1 ++ ")"
+					  ConctM m1 m2 -> show m1 ++ show m2
+
+instance Show L where
+	show l = case l of
+						El -> ""
+						ConctP l1 l2 -> "(" ++ show l1 ++ ")" ++ show l2
+
+
 
 --Hacemos que los tipos M y L formen parte de la clase Show.
 {-Aquí debes hacer que los tipos M y L 
@@ -21,8 +34,8 @@ conctL (ConctP El El) El = ConctP El El
 conctL El (ConctP El El) = ConctP El El
 
 --Convierte cadenas de M en L.
---mToL :: M->L
---mTol Em = El
+mToL :: M->L
+mToL Em = El
 
 
 --Convierte cadenas de L en M.
@@ -51,6 +64,7 @@ lToM El = Em
 ----Función que convierte una cadena de texto balanceada en un objeto de tipo M.
 parserM :: String->M
 parserM "" = Em
+parserM "()" = Par Em
 
 
 ----Función que convierte una cadena de texto balanceada en un objeto de tipo L.
