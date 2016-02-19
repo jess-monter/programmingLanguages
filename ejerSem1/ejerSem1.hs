@@ -17,8 +17,8 @@ data L = El | ConctP L L deriving Show
 --Concatena dos cadenas de L.
 conctL :: L->L->L
 conctL El El = El
-conctL El l = l
-conctL l El = l
+conctL (ConctP El El) El = ConctP El El
+conctL El (ConctP El El) = ConctP El El
 
 --Convierte cadenas de M en L.
 --mToL :: M->L
