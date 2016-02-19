@@ -43,8 +43,8 @@ lToM :: L->M
 lToM El = Em
 
 
-----Tipo de dato para implementar el lexer.
---data Tokens = ParA | ParC | Desc deriving (Show, Eq)
+--Tipo de dato para implementar el lexer.
+data Tokens = ParA | ParC | Desc deriving (Show, Eq)
 
 
 ----Lexer que recibe una cadena de texto y lo convierte en tokens.
