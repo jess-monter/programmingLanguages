@@ -30,13 +30,11 @@ conctL :: L->L->L
 conctL El El = El
 conctL El l1 = l1
 conctL l1 El = l1
---conctL (ConctP El El) El = ConctP El El
---conctL El (ConctP El El) = ConctP El El
 conctL (ConctP El El) (ConctP El El) = ConctP El (ConctP El El)
---conctL (ConctP El l1) El = ConctP El l1
---conctL (ConctP l1 El) El = ConctP l1 El
 conctL (ConctP El El) l1 = ConctP El l1
 --conctL l1 (ConctP El El) = 
+conctL (ConctP l1 El) (ConctP El El) = ConctP l1 (ConctP El El)
+conctL (ConctP El l1) (ConctP El El) = ConctP El (ConctP El l1)
 
 --conctL (ConctP l1 l2) (ConctP l3 l4) = ConctP
 
