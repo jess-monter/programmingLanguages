@@ -33,19 +33,7 @@ conctL l1 El = l1
 conctL (ConctP El El) l1 = conctL (ConctP El l1) El
 conctL (ConctP l1 El) l2 = conctL (ConctP l1 l2) El
 conctL (ConctP El l1) l2 = conctL (ConctP El El) (conctL l1 l2)
-
 conctL l1 (ConctP El El) = conctL (conctL l1 El) (ConctP El El)
-
-
-
-
---conctL (ConctP El El) (ConctP El El) = conctL (ConctP El (ConctP El El)) El
-
---conctL (ConctP l1 El) (ConctP El El) = ConctP l1 (ConctP El El)
---conctL (ConctP El l1) (ConctP El El) = ConctP El (conctL l1 (ConctP El El))
---conctL (ConctP El El) (ConctP l1 El) = ConctP El (ConctP l1 El)
---conctL (ConctP El El) (ConctP El l1) = ConctP El (ConctP El l1)
-
 
 --Convierte cadenas de M en L.
 mToL :: M->L
@@ -75,45 +63,48 @@ lexer (')':ls) = ParC:(lexer ls)
 lexer (_:ls) = lexer ls
 
 ------Tipo de dato para representar los juicios de análisis sintáctico.
-----data Pila = Pila Int [Tokens] 
+data Pila = Pila Int [Tokens] 
 
 ------Función que hace un análisis sintáctico para determinar si una cadena está balanceada o no.
 ----analiSintc :: Pila->Bool
 
 ------Función que determina si una cadena está formada por paréntesis y está balanceada.
-----esBalanceada :: String->Bool
+esBalanceada :: String->Bool
+esBalanceada "" = True
+esBalanceada (')':ls) = False
 
 --Función que convierte una cadena de texto balanceada en un objeto de tipo M.
---parserM :: String->M
---parserM "" = Em
---parserM "()" = Par Em
-----parserM ('(':ls:')') = Par (parserM ls)
-----parserM (xs:ls) = ConctM (parserM xs) (parserM ls)
-
+parserM :: String->M
+parserM "" = Em
+parserM "()" = Par Em
+parserM "()()" = ConctM (Par Em) (Par Em)
+--parserM  = parserM ls
+--parserM ('(':')':ls) = Par Em
 
 --Función que convierte una cadena de texto balanceada en un objeto de tipo L.
 parserL :: String->L
 parserL "" = El
 parserL "()" = ConctP El El
-parserL ('(':')':ls) = (ConctP El (parserL ls))
-parserL "(())" = ConctP (ConctP El El) El
---parserL "((()))" = 
+parserL ('(':')':ls) = conctL (ConctP El El) (parserL ls)
+--WORKING parserL ('(':')':ls) = ConctP El (parserL ls)
+parserL ('(':ls) = ConctP (parserL ls) El
+parserL (_:ls) = conctL El (parserL ls)
 
 
-------PRUEBAS:
-----prueba1 = show (Par $ ConctM (Par $ Par Em) (Par Em)) == "((())())"
-----prueba2 = show (ConctP (ConctP (ConctP El El) (ConctP El El)) El)  == "((())())" 
-----prueba3 = show (conctL (parserL "()()()") (parserL "(())")) == "()()()(())"  
-----prueba4 = show (mToL $ parserM "(())()(())") == "(())()(())" 
-----prueba5 = show (lToM $ parserL "(())()(())()") == "(())()(())()"
-----prueba6 = lexer (show $ parserM "(()((())(())))") == 
-----                              [ParA,ParA,ParC,ParA,ParA,ParA,ParC,ParC,ParA,ParA,ParC,ParC,ParC,ParC]
-----prueba7 = lexer (show $ parserL "(()((())(())))") == 
-----                              [ParA,ParA,ParC,ParA,ParA,ParA,ParC,ParC,ParA,ParA,ParC,ParC,ParC,ParC]
-----prueba8 = analiSintc $ Pila 0 $ lexer "(()((())(())))"
-------Sólo estas pruebas deben devolver False.
-----prueba9 = analiSintc $ Pila 0 $ lexer "(()((())(()))"
-----prueba10 = analiSintc $ Pila 0 $ lexer "(()((())())))"
+--PRUEBAS:
+prueba1 = show (Par $ ConctM (Par $ Par Em) (Par Em)) == "((())())"
+prueba2 = show (ConctP (ConctP (ConctP El El) (ConctP El El)) El)  == "((())())" 
+prueba3 = show (conctL (parserL "()()()") (parserL "(())")) == "()()()(())"  
+prueba4 = show (mToL $ parserM "(())()(())") == "(())()(())" 
+prueba5 = show (lToM $ parserL "(())()(())()") == "(())()(())()"
+prueba6 = lexer (show $ parserM "(()((())(())))") == 
+                              [ParA,ParA,ParC,ParA,ParA,ParA,ParC,ParC,ParA,ParA,ParC,ParC,ParC,ParC]
+prueba7 = lexer (show $ parserL "(()((())(())))") == 
+                              [ParA,ParA,ParC,ParA,ParA,ParA,ParC,ParC,ParA,ParA,ParC,ParC,ParC,ParC]
+--prueba8 = analiSintc $ Pila 0 $ lexer "(()((())(())))"
+----Sólo estas pruebas deben devolver False.
+--prueba9 = analiSintc $ Pila 0 $ lexer "(()((())(()))"
+--prueba10 = analiSintc $ Pila 0 $ lexer "(()((())())))"
 
 
 
