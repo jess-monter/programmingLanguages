@@ -42,7 +42,6 @@ mToL (Par Em) = ConctP El El
 mToL (Par m1) = ConctP (mToL m1) El
 mToL (ConctM (Par m1) m2) = ConctP (mToL m1) (mToL m2)
 mToL (ConctM m1 (Par m2)) = conctL (mToL m1) (ConctP (mToL m2) El)
---mToL (ConctM (Par m1) (Par m2)) = conctL (ConctP (mToL m1) El) (ConctP (mToL m2) El)
 mToL (ConctM m1 m2) = conctL (mToL m1) (mToL m2)
 
 --Convierte cadenas de L en M.
@@ -72,9 +71,6 @@ analiSintc (Pila 0 [ParC]) = False
 analiSintc (Pila 0 (ParA:(xs))) = False
 analiSintc (Pila (k) (ParA:(xs))) = analiSintc (Pila (k+1) xs)
 analiSintc (Pila (k) (ParC:(xs))) = if k>0 then analiSintc (Pila (k-1) xs) else False
-
-test1= analiSintc $ Pila 0 $ lexer  "( () ((()) (()) )"
-test2 = analiSintc $ Pila 0 $ lexer "(()((())())) )"
  
 ------Función que determina si una cadena está formada por paréntesis y está balanceada.
 esBalanceada :: String->Bool
