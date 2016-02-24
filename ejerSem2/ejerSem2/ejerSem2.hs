@@ -9,15 +9,21 @@ Facultad de Ciencias UNAM
 data Exp = Num Int | Var String | Suma Exp Exp | Let String Exp Exp deriving Show
 
 freeVars::Exp->[String]
-freeVars = error "Te toca"
-
+freeVars (Num a) = []
+freeVars (Var c) = [c]
+freeVars (Suma exp1 exp2) = (freeVars exp1) ++ (freeVars exp2)
+freeVars (Let x exp1 exp2) = filter (x/=) ((freeVars exp1) ++ (freeVars exp2)) 
 
 sust::Exp->String->Exp->Exp
-sust = error "Te toca"
+sust (Num a) str exp1 = error "No se puede sustituir"
+sust (Var c) str exp1 = Var str
+sust a b (Suma exp1 exp2) = Suma (sust a b exp1) (sust a b exp2)
 
 
 eval::Exp->Int
-eval = error "Te toca"
+eval (Num a) = a
+eval (Var c) = error "No se puede evaluar"
+eval (Suma exp1 exp2) = eval(exp1) + eval(exp2)
 
 
 {-PRUEBAS-}
