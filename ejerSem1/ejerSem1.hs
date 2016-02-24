@@ -111,3 +111,13 @@ prueba10 = analiSintc $ Pila 0 $ lexer "(()((())())))"
 
 
 
+--parserL "()(())" = ConctP El (ConctP (ConctP El El) El)
+--parserL "()((()))" = ConctP El (ConctP (ConctP (ConctP El El) El) El)
+--parserL "(())" = ConctP (ConctP El El) El
+--parserL "(())()" = ConctP (ConctP El El) (ConctP El El)
+--parserL "((()))" = ConctP (ConctP (ConctP El El) El) El
+--parserL "((()))()" = ConctP (ConctP (ConctP El El) El) (ConctP El El)
+--parserL "((()))(())" = ConctP (ConctP (ConctP El El) El) (ConctP (ConctP El El) El)
+--parserL "(((()))())" = ConctP (ConctP (ConctP (ConctP El El) El) (ConctP El El)) El
+--parserL "((())(()))" = ConctP (ConctP (ConctP El El) (ConctP (ConctP El El) El)) El
+--parserL "()((())(())))" = ConctP El (ConctP (ConctP (ConctP El El) (ConctP (ConctP El El) El)) El)
