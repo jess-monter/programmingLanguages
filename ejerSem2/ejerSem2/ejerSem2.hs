@@ -15,15 +15,16 @@ freeVars (Suma exp1 exp2) = (freeVars exp1) ++ (freeVars exp2)
 freeVars (Let x exp1 exp2) = filter (x/=) ((freeVars exp1) ++ (freeVars exp2)) 
 
 sust::Exp->String->Exp->Exp
-sust (Num a) str exp1 = error "No se puede sustituir"
-sust (Var c) str exp1 = Var str
-sust a b (Suma exp1 exp2) = Suma (sust a b exp1) (sust a b exp2)
-
+sust (Num a) varSust exp1 = Num a
+sust (Var c) varSust exp1 = if (varSust == c) then exp1 else Var c
+sust (Suma exp1 exp2) varSust exp3 = Suma (sust exp1 varSust exp3) (sust exp2 varSust exp3)
+sust (Let varSust exp1 exp2) varSust2 exp3 = Let varSust (sust exp1 varSust2 exp3) (sust exp2 varSust2 exp3)
 
 eval::Exp->Int
 eval (Num a) = a
 eval (Var c) = error "No se puede evaluar"
 eval (Suma exp1 exp2) = eval(exp1) + eval(exp2)
+eval (Let varSust exp1 exp2) = eval (sust exp1 varSust exp2)
 
 
 {-PRUEBAS-}
@@ -32,8 +33,8 @@ eval (Suma exp1 exp2) = eval(exp1) + eval(exp2)
 prueba1 = eval $ Let "x" (Num 3) $ Let "y" (Num 7) $ Suma (Var "x") (Suma (Num 4) (Var "y"))
 
 -- Debe dar 20.
--- (let x = (let z = 5 in z+3 end) x end) + (let y = 7 in 5+y end)
-prueba2 = error "Te toca escribir la prueba"
+-- (let x = (let z = 5 in z+3 end) in x end) + (let y = 7 in 5+y end)
+prueba2 = eval $ Suma (Let "x" (Let "z" (Num 5) (Suma (Var "z") (Num 3))) (Var "x")) (Let "y" (Num 7) (Suma (Num 5) (Var "y")))
 
 -- Debe de dar 60.
 -- let x = (let y = 3 in (14+y)+5 end) in let z = x+16 in z+x end end
