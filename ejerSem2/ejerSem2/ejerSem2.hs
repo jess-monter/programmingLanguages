@@ -22,7 +22,7 @@ sust (Let varSust exp1 exp2) varSust2 exp3 = Let varSust (sust exp1 varSust2 exp
 
 eval::Exp->Int
 eval (Num a) = a
-eval (Var c) = error "No se puede evaluar"
+eval (Var c) = error "Nope nope nope"
 eval (Suma exp1 exp2) = eval(exp1) + eval(exp2)
 eval (Let varSust exp1 exp2) = eval (sust exp2 varSust exp1)
 
