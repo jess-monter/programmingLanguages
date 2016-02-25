@@ -24,7 +24,7 @@ eval::Exp->Int
 eval (Num a) = a
 eval (Var c) = error "No se puede evaluar"
 eval (Suma exp1 exp2) = eval(exp1) + eval(exp2)
-eval (Let varSust exp1 exp2) = eval (sust exp1 varSust exp2)
+eval (Let varSust exp1 exp2) = eval (sust exp2 varSust exp1)
 
 
 {-PRUEBAS-}
@@ -38,11 +38,15 @@ prueba2 = eval $ Suma (Let "x" (Let "z" (Num 5) (Suma (Var "z") (Num 3))) (Var "
 
 -- Debe de dar 60.
 -- let x = (let y = 3 in (14+y)+5 end) in let z = x+16 in z+x end end
-prueba3 = error "Te toca escribir la prueba"
+prueba3 = eval $ Let "x" (Let "y" (Num 3) (Suma (Suma (Num 14) (Var "y")) (Num 5))) (Let "z" (Suma (Var "x") (Num 16)) (Suma (Var "z") (Var "x")))
 
 -- Debe de dar 40.
 -- let x = 3 + (let y = 98 in end 98 + (1+y)) in let y = 19 in x + (let z = y in z+2) end end
-prueba4 = error "Te toca escribir la prueba"
+prueba4 =  eval $ Let "x" (Suma (Num 3) (Let "y" (Num 98) (Suma (Num 98) (Suma (Num 1) (Var "y"))))) (Let "y" (Num 19) (Suma (Var "x") (Let "z" (Var "y") (Suma (Var "z") (Num 2)))))
+
+    --Let "x" 
+    --(Suma (Num 3) (Let "y" (Num 98) (Suma (Num 98) (Suma (Num 1) (Var "y"))) ))
+    --(Let "y" (Num 19) ( Suma (Var "x") (Let "z" (Var "y") (Suma (Var "z") (Num 2) ))))
 
 
 {-RETO EXTRA-}
