@@ -58,10 +58,10 @@ evalreto (Var c) n = error "NOPE"
 evalreto (Suma exp1 exp2) n = (x1+x2,y1+y2+1) where
 															(x1,y1) = (evalreto exp1 0)
 															(x2,y2) = (evalreto exp2 0) 
-evalreto (Let varSust exp1 exp2) n = evalreto (sust exp2 varSust exp1) (y3)
-																		where (x1,y1) = evalreto exp1 0
-																		      (x2,y2) = evalreto exp2 y1
-																		      (x3,y3) = evalreto (sust exp2 varSust exp1) y2
+evalreto (Let varSust exp1 exp2) n = evalreto (sust exp2 varSust exp1) (n+3)
+																		where (x1,y1) = evalreto exp1 n
+																		      (x2,y2) = evalreto exp2 n
+																		      (x3,y3) = evalreto (sust exp2 varSust exp1) n
 
 
 {-PRUEBAS RETO-}
@@ -73,6 +73,14 @@ prueba1r = evalreto  (Suma (Let "x" (Let "z" (Num 5) $ Suma (Var "z") (Num 3)) $
 prueba2r = evalreto (Let "x" (Suma (Num 2) (Let "y" (Num 98) $ Suma (Num 98) (Suma (Num 1) (Num 3)))) $
                   Let "y" (Num 19) $ Suma (Suma (Num 8) (Var "y")) (Let "z" (Var "y") $ Suma (Var "z") (Num 2))) 0
 
+-- Debe dar (18,3)
+prueba3r = evalreto (Let "x" (Num 3) $ Suma (Suma (Num 2) (Num 3)) (Suma (Num 3) (Num 10))) 0
+
+-- Debe dar (8,1)
+prueba4r = evalreto (Let "x" (Suma (Num 1) (Num 7)) $ Var "x") 0
+
+-- Debe dar (3,3)
+prueba5r = evalreto (Suma (Num 1) (Num 2)) 2
 
 
 
