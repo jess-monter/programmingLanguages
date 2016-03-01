@@ -58,11 +58,10 @@ evalreto (Var c) n = error "NOPE"
 evalreto (Suma exp1 exp2) n = (x1+x2,y1+y2+1) where
 															(x1,y1) = (evalreto exp1 0)
 															(x2,y2) = (evalreto exp2 0) 
-evalreto (Let varSust exp1 exp2) n = evalreto (sust exp2 varSust exp1) (y1+y2+y3)
+evalreto (Let varSust exp1 exp2) n = evalreto (sust exp2 varSust exp1) (y3)
 																		where (x1,y1) = evalreto exp1 0
-																		      (x2,y2) = evalreto exp2 0
-																		      (x3,y3) = evalreto (sust exp2 varSust exp1) (y1+y2)
-
+																		      (x2,y2) = evalreto exp2 y1
+																		      (x3,y3) = evalreto (sust exp2 varSust exp1) y2
 
 {-PRUEBAS RETO-}
 -- Debe dar (24,3).
