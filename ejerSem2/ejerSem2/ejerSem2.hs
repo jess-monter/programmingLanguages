@@ -63,6 +63,7 @@ evalreto (Let varSust exp1 exp2) n = evalreto (sust exp2 varSust exp1) (y3)
 																		      (x2,y2) = evalreto exp2 y1
 																		      (x3,y3) = evalreto (sust exp2 varSust exp1) y2
 
+
 {-PRUEBAS RETO-}
 -- Debe dar (24,3).
 prueba1r = evalreto  (Suma (Let "x" (Let "z" (Num 5) $ Suma (Var "z") (Num 3)) $ Var "x") 
