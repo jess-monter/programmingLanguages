@@ -22,13 +22,21 @@ type Ctx = [(Ident,Tipo)]
 
 --Implementacion de la semantica estatica (Juicios para tipos)
 vt :: Ctx -> Asa -> Tipo 
-vt ctx (VNum num) = TNat
-vt ctx (VBol bool) = TBol
---vt [(x, t)] (Var x) = t
-vt ctx (Suma a b) = if (vt ctx a) == TNat && (vt ctx b) == TNat then TNat else error "Los argumentos de la suma no son TNat"
-vt ctx (Prod a b) = if (vt ctx a) == TNat && (vt ctx b ) == TNat then TNat else error "Los argumentos del producto no son TNat"
---vt ctx (Let a b c)
---vt ctx (Ifte a b c)
-vt ctx (Suc a) = if (vt ctx a) == TNat then TNat else error "El argumento no es TNat"
-vt ctx (Pred a) = if (vt ctx a) == TNat then TNat else error "El argumento no es TNat"
-vt ctx (Iszero a) = if (vt ctx a) == TNat then TNat else error "El argumento no es TNat"
+vt ctx t = case t of
+								VNum _ -> TNat
+								VBol _ -> TBol
+								Var v -> if (v,TBol) `elem` ctx then TBol else if (v,TNat) `elem` ctx then TNat else error ("La varaiable " ++ v ++ " no esta declarada en el contexto")
+								Suma e1 e2 -> if (vt ctx e1) == TNat && (vt ctx e2) == TNat then TNat else error "Alguno de los argumentos no es TNat"
+								Prod e1 e2 -> if (vt ctx e1) == TNat && (vt ctx e2) == TNat then TNat else error "Aguno de los argumentos no es TNat"
+								--Let e1 e2 e3 -> if (vt ctx var) == (vt ctx e1) then (vt ctx e2) else error "Tipos incorrectos"
+								Let e1 e2 e3 -> (vt ctx e2)
+								Ifte e1 e2 e3 -> 	if (vt ctx e1) == TBol then if (vt ctx e2) == (vt ctx e3) then (vt ctx e2) else error "El tipo de las ramas es incorrecto"													 	else error "La guardia no es bool"
+								Suc e -> if (vt ctx e) == TNat then TNat else error "El argumento no es TNat"
+								Pred e -> if (vt ctx e) == TNat then TNat else error "El argumento no es TNat"
+								Iszero e -> if (vt ctx e) == TNat then TNat else error "El argumento no es TNat"
+
+
+
+--prueba1 = vt [] $ Prod (VNum 3) (Suma (Var "x") (VNum 5))
+
+--prueba2 = vt [("y",TNat)] $ Let (Var "x") (Var "y") $ Var "x"

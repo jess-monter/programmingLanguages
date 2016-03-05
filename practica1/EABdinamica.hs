@@ -17,18 +17,52 @@ import ParserEAB
 import EABestatica
 
 
+freeVars :: Asa -> [String]
+freeVars t = case t of
+                (VNum _) -> []
+                (VBol _) -> []
+                (Var v) -> [v]
+                (Suma exp1 exp2) -> (freeVars exp1) ++ (freeVars exp2)
+                (Prod exp1 exp2) -> (freeVars exp1) ++ (freeVars exp2)
+                (Ifte e1 e2 e3) ->  (freeVars e1) ++ (freeVars e2) ++ (freeVars e3)
+                (Suc e) -> freeVars e
+                (Pred e) -> freeVars e
+                (Iszero e) -> freeVars e
+                (Let e x r) -> filter (x/=) ((freeVars e) ++ (freeVars r))
+--freeVars::Exp->[String]
+--freeVars (Num a) = []
+--freeVars (Var c) = [c]
+--freeVars (Suma exp1 exp2) = (freeVars exp1) ++ (freeVars exp2)
+--freeVars (Let x exp1 exp2) = filter (x/=) ((freeVars exp1) ++ (freeVars exp2)) 
+
 --   Sustitución
 -- subst e x r  debe devolver e[x:=r].
 sust :: Asa -> Ident -> Asa -> Asa
-sust = error "Te toca"
+sust (VNum a) x r = VNum a
+sust (VBol b) x r = VBol b
+sust (Var v) x r = if (v == x) then r else Var v
+sust (Suma e1 e2) x r = Suma (sust e1 x r) (sust e2 x r)
+sust (Prod e1 e2) x r = Prod (sust e1 x r) (sust e2 x r)
+sust (Let exp1 varSust exp2) x r = if varSust `elem` (x:(freeVars r))
+                                           then (Let exp1 varSust exp2) 
+                                           else (Let (sust exp1 x r) varSust (sust exp2 x r))
+sust (Ifte e1 e2 e3) x r =  (Ifte (sust e1 x r) (sust e2 x r) (sust e3 x r))
+sust (Suc e) x r = Suc(sust e x r)
+sust (Pred e) x r = Pred(sust e x r)
+sust (Iszero e) x r = Iszero(sust e x r)
+--sust (Num a) varSust exp1 = Num a
+--sust (Var c) varSust exp1 = if (varSust == c) then exp1 else Var c
+--sust (Suma exp1 exp2) varSust exp3 = Suma (sust exp1 varSust exp3) (sust exp2 varSust exp3)
+
 
 
 --   Valores 
 -- Función que nos dice cuándo una expresión es un valor.
 esvalor :: Asa -> Bool
-esvalor (VNum a) = True
-esvalor (VBol b) = True
-esvalor _ = False
+esvalor t = case t of
+          VNum _ -> True
+          VBol _ -> True
+          _ -> False
 
 
 -- Evaluación de expresiones
