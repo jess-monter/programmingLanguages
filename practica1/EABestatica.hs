@@ -22,4 +22,13 @@ type Ctx = [(Ident,Tipo)]
 
 --Implementacion de la semantica estatica (Juicios para tipos)
 vt :: Ctx -> Asa -> Tipo 
-vt = error "Te toca"
+vt ctx (VNum num) = TNat
+vt ctx (VBol bool) = TBol
+--vt [(x, t)] (Var x) = t
+vt ctx (Suma a b) = if (vt ctx a) == TNat && (vt ctx b) == TNat then TNat else error "Los argumentos de la suma no son TNat"
+vt ctx (Prod a b) = if (vt ctx a) == TNat && (vt ctx b ) == TNat then TNat else error "Los argumentos del producto no son TNat"
+--vt ctx (Let a b c)
+--vt ctx (Ifte a b c)
+vt ctx (Suc a) = if (vt ctx a) == TNat then TNat else error "El argumento no es TNat"
+vt ctx (Pred a) = if (vt ctx a) == TNat then TNat else error "El argumento no es TNat"
+vt ctx (Iszero a) = if (vt ctx a) == TNat then TNat else error "El argumento no es TNat"

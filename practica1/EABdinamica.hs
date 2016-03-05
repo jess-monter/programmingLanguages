@@ -26,7 +26,9 @@ sust = error "Te toca"
 --   Valores 
 -- Función que nos dice cuándo una expresión es un valor.
 esvalor :: Asa -> Bool
-esvalor = error "Te toca"
+esvalor (VNum a) = True
+esvalor (VBol b) = True
+esvalor _ = False
 
 
 -- Evaluación de expresiones
