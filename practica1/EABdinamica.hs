@@ -58,15 +58,14 @@ esvalor t = case t of
 -- Evaluación de expresiones
 -- Evalúa las expresiones que están bien tipadas.
 eval :: Asa -> Asa
-eval = error "Te toca"
+eval t = evalaux t
 
 
 -- evalaux hace transiciones mientras no se llegue a un estado final.
 evalaux :: Asa -> Asa
---evalaux t = until esvalor(eval1p t) eval1p
-evalaux t | (esvalor t)    = t
-          | otherwise = eval1p y
-           where y = eval1p t
+evalaux t | (esvalor t) = t
+          | otherwise = evalaux t1
+           where t1 = eval1p t
 
 
 -- Reglas de transición
@@ -85,7 +84,7 @@ eval1p t = case t of
             (Prod t1@(VNum n) t2) -> let t2' = eval1p t2 in Prod t1 t2'
             (Prod t1 t2) -> Prod (eval1p t1) (eval1p t2)
             (Let (Var x) e1 e2) -> eval1p $ sust (eval1p e1) x (eval1p e2)
-            (Ifte t1 t2 t3) -> if (eval1p t1) == VBol True then (eval1p t2) else (eval1p t3)
+            (Ifte t1 t2 t3) -> Ifte (eval1p t1) t2 t3 --if (eval1p t1) == VBol True then (eval1p t2) else (eval1p t3)
             (Suc (VNum n)) -> VNum (n+1)
             (Suc t) -> Suc(eval1p t)
             (Pred (VNum 0)) -> VNum 0
