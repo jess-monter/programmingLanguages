@@ -28,12 +28,7 @@ freeVars t = case t of
                 (Suc e) -> freeVars e
                 (Pred e) -> freeVars e
                 (Iszero e) -> freeVars e
-                (Let e x r) -> filter (x/=) ((freeVars e) ++ (freeVars r))
---freeVars::Exp->[String]
---freeVars (Num a) = []
---freeVars (Var c) = [c]
---freeVars (Suma exp1 exp2) = (freeVars exp1) ++ (freeVars exp2)
---freeVars (Let x exp1 exp2) = filter (x/=) ((freeVars exp1) ++ (freeVars exp2)) 
+                (Let (Var x) e r) -> filter (x/=) ((freeVars e) ++ (freeVars r))
 
 --   Sustitución
 -- subst e x r  debe devolver e[x:=r].
@@ -43,18 +38,13 @@ sust (VBol b) x r = VBol b
 sust (Var v) x r = if (v == x) then r else Var v
 sust (Suma e1 e2) x r = Suma (sust e1 x r) (sust e2 x r)
 sust (Prod e1 e2) x r = Prod (sust e1 x r) (sust e2 x r)
-sust (Let exp1 varSust exp2) x r = if varSust `elem` (x:(freeVars r))
-                                           then (Let exp1 varSust exp2) 
-                                           else (Let (sust exp1 x r) varSust (sust exp2 x r))
+sust (Let (Var varSust) exp1 exp2) x r = if varSust `elem` (x:(freeVars r))
+                                           then (Let exp1 (Var varSust) exp2) 
+                                           else (Let (sust exp1 x r) (Var varSust) (sust exp2 x r))
 sust (Ifte e1 e2 e3) x r =  (Ifte (sust e1 x r) (sust e2 x r) (sust e3 x r))
 sust (Suc e) x r = Suc(sust e x r)
 sust (Pred e) x r = Pred(sust e x r)
 sust (Iszero e) x r = Iszero(sust e x r)
---sust (Num a) varSust exp1 = Num a
---sust (Var c) varSust exp1 = if (varSust == c) then exp1 else Var c
---sust (Suma exp1 exp2) varSust exp3 = Suma (sust exp1 varSust exp3) (sust exp2 varSust exp3)
-
-
 
 --   Valores 
 -- Función que nos dice cuándo una expresión es un valor.
@@ -73,13 +63,37 @@ eval = error "Te toca"
 
 -- evalaux hace transiciones mientras no se llegue a un estado final.
 evalaux :: Asa -> Asa
-evalaux = error "Te toca"
+--evalaux t = until esvalor(eval1p t) eval1p
+evalaux t | (esvalor t)    = t
+          | otherwise = eval1p y
+           where y = eval1p t
 
 
 -- Reglas de transición
 -- eval1p hace una transición mientras se pueda aplicar una regla de transición.
 eval1p :: Asa -> Asa
-eval1p = error "Te toca"
+eval1p t = case t of
+            (VNum n) -> VNum n
+            (VBol b) -> VBol b
+            (Var x) -> Var x
+            (Suma (VNum n) (VNum m)) -> VNum (n+m)
+            (Suma t1 t2@(VNum m)) -> let t1' = eval1p t1 in Suma t1' t2
+            (Suma t1@(VNum n) t2) -> let t2' = eval1p t2 in Suma t1 t2'
+            (Suma t1 t2) -> Suma (eval1p t1) (eval1p t2)
+            (Prod (VNum n) (VNum m)) -> VNum (n*m)
+            (Prod t1 t2@(VNum m)) -> let t1' = eval1p t1 in Prod t1' t2
+            (Prod t1@(VNum n) t2) -> let t2' = eval1p t2 in Prod t1 t2'
+            (Prod t1 t2) -> Prod (eval1p t1) (eval1p t2)
+            (Let (Var x) e1 e2) -> eval1p $ sust (eval1p e1) x (eval1p e2)
+            (Ifte t1 t2 t3) -> if (eval1p t1) == VBol True then (eval1p t2) else (eval1p t3)
+            (Suc (VNum n)) -> VNum (n+1)
+            (Suc t) -> Suc(eval1p t)
+            (Pred (VNum 0)) -> VNum 0
+            (Pred (VNum n)) -> VNum (n-1)
+            (Pred t) -> Pred(eval1p t)
+            (Iszero(VNum 0)) -> VBol True
+            (Iszero(VNum _)) -> VBol False
+            (Iszero t) -> Iszero(eval1p t)
 
 
 -- 5 Pretty printer
