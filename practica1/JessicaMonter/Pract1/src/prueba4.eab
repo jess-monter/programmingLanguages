@@ -1,0 +1,1 @@
+iszero ((let z = suc 4 in if (iszero 9) then 28 else 98 end)*(pred (1+0)))
