@@ -25,7 +25,7 @@ vt :: Ctx -> Asa -> Tipo
 vt ctx t = case t of
 								VNum _ -> TNat
 								VBol _ -> TBol
-								Var v -> if (v,TBol) `elem` ctx then TBol else if (v,TNat) `elem` ctx then TNat else error ("La varaiable " ++ v ++ " no esta declarada en el contexto")
+								Var v -> if (v,TBol) `elem` ctx then TBol else if (v,TNat) `elem` ctx then TNat else error ("La variable \"" ++ v ++ "\" no esta declarada en el contexto.")
 								Suma e1 e2 -> if (vt ctx e1) == TNat && (vt ctx e2) == TNat then TNat else error "Alguno de los argumentos no es TNat"
 								Prod e1 e2 -> if (vt ctx e1) == TNat && (vt ctx e2) == TNat then TNat else error "Aguno de los argumentos no es TNat"
 								--Let e1 e2 e3 -> if (vt ctx var) == (vt ctx e1) then (vt ctx e2) else error "Tipos incorrectos"
@@ -33,7 +33,7 @@ vt ctx t = case t of
 								Ifte e1 e2 e3 -> 	if (vt ctx e1) == TBol then if (vt ctx e2) == (vt ctx e3) then (vt ctx e2) else error "El tipo de las ramas es incorrecto"													 	else error "La guardia no es bool"
 								Suc e -> if (vt ctx e) == TNat then TNat else error "El argumento no es TNat"
 								Pred e -> if (vt ctx e) == TNat then TNat else error "El argumento no es TNat"
-								Iszero e -> if (vt ctx e) == TNat then TNat else error "El argumento no es TNat"
+								Iszero e -> if (vt ctx e) == TNat then TBol else error "El argumento no es TNat"
 
 
 

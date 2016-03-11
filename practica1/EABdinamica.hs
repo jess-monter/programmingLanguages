@@ -39,8 +39,8 @@ sust (Var v) x r = if (v == x) then r else Var v
 sust (Suma e1 e2) x r = Suma (sust e1 x r) (sust e2 x r)
 sust (Prod e1 e2) x r = Prod (sust e1 x r) (sust e2 x r)
 sust (Let (Var varSust) exp1 exp2) x r = if varSust `elem` (x:(freeVars r))
-                                           then (Let exp1 (Var varSust) exp2) 
-                                           else (Let (sust exp1 x r) (Var varSust) (sust exp2 x r))
+                                           then (Let (Var varSust) exp1 exp2) 
+                                           else (Let (Var varSust) (sust exp1 x r) (sust exp2 x r))
 sust (Ifte e1 e2 e3) x r =  (Ifte (sust e1 x r) (sust e2 x r) (sust e3 x r))
 sust (Suc e) x r = Suc(sust e x r)
 sust (Pred e) x r = Pred(sust e x r)
@@ -83,8 +83,11 @@ eval1p t = case t of
             (Prod t1 t2@(VNum m)) -> let t1' = eval1p t1 in Prod t1' t2
             (Prod t1@(VNum n) t2) -> let t2' = eval1p t2 in Prod t1 t2'
             (Prod t1 t2) -> Prod (eval1p t1) (eval1p t2)
-            (Let (Var x) e1 e2) -> eval1p $ sust (eval1p e1) x (eval1p e2)
-            (Ifte t1 t2 t3) -> Ifte (eval1p t1) t2 t3 --if (eval1p t1) == VBol True then (eval1p t2) else (eval1p t3)
+            (Let (Var x) e1 e2) -> eval1p $ sust (eval1p e2) x (eval1p e1)
+            (Ifte t1 t2 t3) ->  if esvalor(t1) then 
+                                  if t1 == VBol True then eval1p(t2) else eval1p(t3)
+                                else
+                                  eval1p (Ifte (eval1p t1) t2 t3)
             (Suc (VNum n)) -> VNum (n+1)
             (Suc t) -> Suc(eval1p t)
             (Pred (VNum 0)) -> VNum 0
@@ -93,6 +96,9 @@ eval1p t = case t of
             (Iszero(VNum 0)) -> VBol True
             (Iszero(VNum _)) -> VBol False
             (Iszero t) -> Iszero(eval1p t)
+
+-- subst e x r  debe devolver e[x:=r].
+-- Let x e1 e2 = e2[x:=e1]
 
 
 -- 5 Pretty printer
