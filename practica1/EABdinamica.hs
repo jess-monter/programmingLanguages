@@ -97,6 +97,7 @@ eval1p t = case t of
             (Iszero(VNum _)) -> VBol False
             (Iszero t) -> Iszero(eval1p t)
 
+-- NOTES
 -- subst e x r  debe devolver e[x:=r].
 -- Let x e1 e2 = e2[x:=e1]
 
