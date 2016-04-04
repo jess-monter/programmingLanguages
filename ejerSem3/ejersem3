@@ -1,0 +1,14 @@
+fv e = case e of
+	VAr x -> [x]
+	Lam x e -> filter (x/=) $ fv e
+	App e1 e2 -> fv e1 ++ e2
+
+
+sust e (y,t) = case e of
+		Var x -> if x==y then t else e
+		Lam x w -> if (elem x $ fv(t)++[y]) then e else
+					Lam x $ susst w (y,t)
+		App e1 e2 = App (sust e1 (y,t)) (sust e2 (y,t))
+
+
+		
