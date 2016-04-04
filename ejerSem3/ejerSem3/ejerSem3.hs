@@ -25,69 +25,92 @@ instance Show LamU where
 --Para representar sustituciones            
 type Sust = (String,LamU)        
 
-
 --Para calcular las variables libres de un término
 fv::LamU->[String]
-fv = error "Te toca"     
+fv e = case e of
+   Var x -> [x]
+   Lam x e -> filter (x/=) $ fv e
+   App e1 e2 -> fv e1 ++ fv e2 
      
+--fv $ Lam "x" $ Lam "y" $ App (App (Var "x") (Var "w")) (Var "z")
+
 
 --Para aplicar una sustitución en el cálculo lambda puro                  
 sust::LamU->Sust->LamU
-sust = error "Te toca"                 
+sust e (y,t) = case e of
+      Var x -> if x==y then t else e
+      Lam x w -> if (elem x $ fv(t)++[y]) then e else
+               Lam x $ sust w (y,t)
+      App e1 e2 -> App (sust e1 (y,t)) (sust e2 (y,t))           
+
+-- sust (Lam "x" $ Lam "z" $ App (App (Var "x")(Var "y")) (Var "z")) ("y", Var "r")
+
                    
 
 --Nos dice si hay un redex en un término del cálculo lambda puro            
 hayRedex::LamU->Bool
-hayRedex = error "Te toca"
+hayRedex e = case e of
+         Var _ -> False
+         Lam x e -> False
+         App e1 e2 -> True
+
+--hayRedex $ App (Var "x") (Var "z")
 
 
 --Realiza la beta-reducción en una expresión
 betaR::LamU->LamU
-betaR = error "Te toca" 
-                        
+betaR e = case e of
+          Var x -> Var x
+          Lam x e -> Lam x e
+          App (Lam x e1) e2 -> sust e1 (x, e2)
+
+-- betaR $ App (Lam "x" $ (Var "x")) (Lam "y" $ (Var "y"))                        
 
 --Calcula la forma normal de un término del cálculo lambda puro            
 fn::LamU->LamU
-fn = error "Te toca"
+fn t | not (hayRedex t) = t
+     | otherwise = fn t1
+         where t1 = betaR t
 
 
 --Dado un entero positivo, nos devuelve su representación como numeral de Church
 church::Int->LamU
-church = error "Te toca"
+church 0 = Lam "x" $ Lam "z" $ Var "z"
+church n = Lam "x" $ Lam "z" $ auxChurch n
+                                 where auxChurch 0 = Var "z"
+                                       auxChurch n = App (Var "s") (auxChurch (n-1))
 
 
 --Booleanos en cálculo lambda puro
 true = Lam "x" $ Lam "y" $ Var "x"
-false = error "Te toca"
+false = Lam "x" $ Lam "y" $ Var "y"
 
 --Operador if-then-else
-ift = error "Te toca"
+ift = Lam "b" $ Lam "t" $ Lam "e" $ App (App (Var "b") (Var "t")) (Var "e")
 
 --Operador iszero para numerales de Church
 iszero = Lam "m" $ App (App (Var "m") (Lam "x" $ false)) true
 
-
 --Operador que construye pares ordenados
-pair = error "Te toca"
+pair = Lam "f" $ Lam "s" $ Lam "b" $ App (App (Var "b") (Var "f") ) (Var "s")
 
 --Operador que devuelve la primer componente de un par ordenado
-fstU = error "Te toca"
+fstU = Lam "p" $ App (Var "p") (true)
 
 --Operador que devuelve el segundo componente de un par ordenado
-sndU = error "Te toca"
-
+sndU = Lam "p" $ App (Var "p") (false)
 
 --Sucesor de un numeral de Church
 suc = Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n") (Var "s")) (Var "z"))
 
 --Predecesor de un numeral de Church 
-predU = error "Te toca"
+predU = Lam "m" $ App fstU (App (App (Var "m") (Var "s")) (Var "z"))
 
 --Suma de naturales de Church 
-suma = error "Te toca"
+suma = Lam "n" $ Lam "m" $ App (App (Var "m") (suc)) (Var "n")
 
 --Productor de numerales de Church
-prod = error "Te toca"
+prod = Lam "n" $ Lam "m" $ App (App (Var "m") (suma)) (Var "n")
 
 
 --Operador de punto fijo (Curry-Roser)
