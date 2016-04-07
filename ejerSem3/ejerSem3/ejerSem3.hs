@@ -62,7 +62,7 @@ betaR::LamU->LamU
 betaR e = case e of
           Var x -> Var x
           Lam x e -> Lam x e
-          App (Lam x e1) e2 -> sust e1 (x, e2)
+          App (Lam x e1) e2 -> betaR (sust (betaR e1) (x, e2))
 
 -- betaR $ App (Lam "x" $ (Var "x")) (Lam "y" $ (Var "y"))                        
 
