@@ -52,24 +52,33 @@ hayRedex::LamU->Bool
 hayRedex e = case e of
          Var _ -> False
          Lam x e -> False
+         App (Var x) (Var y) -> False
          App e1 e2 -> True
 
---hayRedex $ App (Var "x") (Var "z")
+pruebaRedex = hayRedex $ App (Var "x") (Var "z")
 
+--Dice si la expresion es un valor
+esValor:: LamU -> Bool
+esValor t = not (hayRedex t)
 
---Realiza la beta-reducción en una expresión betaR::LamU->LamU betaR e = case
-betaR :: LamU -> LamU
+--Realiza la beta-reducción en una expresión
+betaR::LamU -> LamU
 betaR e = case e of 
-        Var x -> Var x
-        Lam x e -> Lam x e
-        App (Lam x e1) e2 -> betaR (sust (betaR e1) (x, e2))
+      Var x -> Var x
+      Lam x z -> Lam x z
+      App (Lam x e1) e2 -> betaR (sust e1 (x, betaR e2))
+      App (Var x) e2 -> App (Var x) (betaR e2)
+      App e1 (Var x) -> App (betaR e1) (Var x)
+      App e1 (Lam x e2) -> App (betaR e1) (Lam x e2)
 
--- betaR $ App (Lam "x" $ (Var "x")) (Lam "y" $ (Var "y"))                        
+
+
+pruebaBeta = betaR $ App (Lam "x" $ (Var "x")) (Lam "y" $ (Var "y"))                        
 
 --Calcula la forma normal de un término del cálculo lambda puro            
-fn::LamU->LamU
+fn::LamU -> LamU
 fn t | not (hayRedex t) = t
-     | otherwise = fn t1
+     | otherwise = fn t1  
          where t1 = betaR t
 
 
