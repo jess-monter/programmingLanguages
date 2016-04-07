@@ -57,12 +57,12 @@ hayRedex e = case e of
 --hayRedex $ App (Var "x") (Var "z")
 
 
---Realiza la beta-reducción en una expresión
-betaR::LamU->LamU
-betaR e = case e of
-          Var x -> Var x
-          Lam x e -> Lam x e
-          App (Lam x e1) e2 -> betaR (sust (betaR e1) (x, e2))
+--Realiza la beta-reducción en una expresión betaR::LamU->LamU betaR e = case
+betaR :: LamU -> LamU
+betaR e = case e of 
+        Var x -> Var x
+        Lam x e -> Lam x e
+        App (Lam x e1) e2 -> betaR (sust (betaR e1) (x, e2))
 
 -- betaR $ App (Lam "x" $ (Var "x")) (Lam "y" $ (Var "y"))                        
 
