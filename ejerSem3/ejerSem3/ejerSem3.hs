@@ -51,36 +51,39 @@ sust e (y,t) = case e of
 hayRedex::LamU->Bool
 hayRedex e = case e of
          Var _ -> False
-         Lam x e -> False
-         App (Var x) (Var y) -> False
+         Lam x e -> hayRedex e
+         App (Lam x e) (e2) -> True
          App e1 e2 -> if hayRedex e1 || hayRedex e2 then True else False
 
 pruebaRedex = hayRedex $ App (Var "x") (Var "z")
-
---Dice si la expresion es un valor
-esValor:: LamU -> Bool
-esValor t = not (hayRedex t)
 
 --Realiza la beta-reducción en una expresión
 betaR::LamU -> LamU
 betaR e = case e of 
       Var x -> Var x
-      Lam x z -> Lam x z
-      App (e1) (App (Lam x e2) e3) -> App e1 (betaR (sust e2 (x,betaR e3)))
-      App (Lam x e1) e2 -> betaR (sust e1 (x,betaR e2))
-      App e1 e2 -> App (betaR e1) (betaR e2)
+      Lam x z -> Lam x (betaR z)
+      App (Lam x e1) e2 -> sust e1 (x, e2)
+      --App e1 (Lam x e2) -> App e1 (Lam x (betaR e2))
+      App a b -> if (hayRedex a) then App (betaR a) b else if hayRedex b then App a (betaR b) else
+                  App a b
+      --App a b -> if (hayRedex b) then App a (betaR b) else if hayRedex a then App (betaR a) b else
+      --            App a b
+      --App e1 e2 -> if hayRedex e1 then App (betaR e1) e2
+      --else if (hayRedex e2) then App (e1) (betaR e2)
       --App (Var x) e2 -> App (Var x) (betaR e2)
       --App e1 (Var x) -> App (betaR e1) (Var x)
-      --App e1 (Lam x e2) -> App (betaR e1) (Lam x e2)
+--      App e1 (Lam x e2) -> App (betaR e1) (Lam x e2)
 
 
-pruebaBeta1 = betaR $ App (Var "x") (App (Lam "z" $ Var "z") (Var "y"))
+pruebaBeta1 = fn $ App (Var "x") (App (Lam "z" $ Var "z") (Var "y"))
 
 pruebaBeta = betaR $ App (Lam "x" $ (Var "x")) (Lam "y" $ (Var "y"))                        
 
 --Calcula la forma normal de un término del cálculo lambda puro            
 fn::LamU -> LamU
-fn t | esValor t = t
+-- fn t = if (hayRedex t) then (betaR t) else t
+
+fn t | not (hayRedex t) = t
      | otherwise = fn t1  
          where t1 = betaR t
 
@@ -126,7 +129,6 @@ suma = Lam "n" $ Lam "m" $ App (App (Var "m") (suc)) (Var "n")
 --Productor de numerales de Church
 prod = Lam "n" $ Lam "m" $ App (App (Var "m") (suma)) (Var "n")
 
-
 --Operador de punto fijo (Curry-Roser)
 pF = Lam "f" $ App (Lam "x" $ App (Var "f") (App (Var "x") (Var "x"))) (Lam "x" $ App (Var "f") (App (Var "x") (Var "x")))
 
@@ -146,6 +148,7 @@ prueba11 = betaR $ App (App suma (church 3)) (church 4)
 prueba12 = betaR $ betaR $ App (App suma (church 3)) (church 4)
 prueba13 = betaR $ betaR $ betaR $ App (App suma (church 3)) (church 4)
 prueba14 = betaR $ betaR $ betaR $ betaR $ App (App suma (church 3)) (church 4)
+
 --Debe de dar /s./z.s(s(s(s(s(sz)))))
 prueba2 = fn $ App (App prod (church 3)) (church 2)
 
