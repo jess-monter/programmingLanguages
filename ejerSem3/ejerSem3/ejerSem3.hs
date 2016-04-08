@@ -53,7 +53,7 @@ hayRedex e = case e of
          Var _ -> False
          Lam x e -> False
          App (Var x) (Var y) -> False
-         App e1 e2 -> True
+         App e1 e2 -> if hayRedex e1 || hayRedex e2 then True else False
 
 pruebaRedex = hayRedex $ App (Var "x") (Var "z")
 
@@ -66,21 +66,26 @@ betaR::LamU -> LamU
 betaR e = case e of 
       Var x -> Var x
       Lam x z -> Lam x z
-      App (Lam x e1) e2 -> betaR (sust e1 (x, betaR e2))
-      App (Var x) e2 -> App (Var x) (betaR e2)
-      App e1 (Var x) -> App (betaR e1) (Var x)
-      App e1 (Lam x e2) -> App (betaR e1) (Lam x e2)
+      App (e1) (App (Lam x e2) e3) -> App e1 (betaR (sust e2 (x,betaR e3)))
+      App (Lam x e1) e2 -> betaR (sust e1 (x,betaR e2))
+      App e1 e2 -> App (betaR e1) (betaR e2)
+      --App (Var x) e2 -> App (Var x) (betaR e2)
+      --App e1 (Var x) -> App (betaR e1) (Var x)
+      --App e1 (Lam x e2) -> App (betaR e1) (Lam x e2)
 
 
+pruebaBeta1 = betaR $ App (Var "x") (App (Lam "z" $ Var "z") (Var "y"))
 
 pruebaBeta = betaR $ App (Lam "x" $ (Var "x")) (Lam "y" $ (Var "y"))                        
 
 --Calcula la forma normal de un término del cálculo lambda puro            
 fn::LamU -> LamU
-fn t | not (hayRedex t) = t
+fn t | esValor t = t
      | otherwise = fn t1  
          where t1 = betaR t
 
+pruebafn = fn $ App (Lam "x" $ Var "z") (App (Lam "z" $ Var "z") (Var "y"))
+pruebafnBeta = betaR $ betaR $ betaR $ betaR $ App (Lam "x" $ Var "z") (App (Lam "z" $ Var "z") (Var "y"))
 
 --Dado un entero positivo, nos devuelve su representación como numeral de Church
 church::Int->LamU
@@ -137,7 +142,10 @@ klop = error "Te toca si quieres +5 pts"
 
 --Debe de dar /s./z.s(s(s(s(s(s(sz))))))
 prueba1 = fn $ App (App suma (church 3)) (church 4)
-
+prueba11 = betaR $ App (App suma (church 3)) (church 4)
+prueba12 = betaR $ betaR $ App (App suma (church 3)) (church 4)
+prueba13 = betaR $ betaR $ betaR $ App (App suma (church 3)) (church 4)
+prueba14 = betaR $ betaR $ betaR $ betaR $ App (App suma (church 3)) (church 4)
 --Debe de dar /s./z.s(s(s(s(s(sz)))))
 prueba2 = fn $ App (App prod (church 3)) (church 2)
 
