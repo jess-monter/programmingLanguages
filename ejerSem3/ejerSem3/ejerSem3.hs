@@ -155,7 +155,6 @@ suma = Lam "n" $ Lam "m" $ App (App (Var "m") (suc)) (Var "n")
 
 --Productor de numerales de Church
 --prod = Lam "n" $ Lam "m" $ App (App (Var "m") (suma)) (Var "n")
-
 prod = Lam "n" $ Lam "m" $ Lam "s" $ App (Var "m") (App (Var "n") (Var "s"))
 
 --Operador de punto fijo (Curry-Roser)
@@ -166,19 +165,22 @@ pF = Lam "f" $ App (Lam "x" $ App (Var "f") (App (Var "x") (Var "x"))) (Lam "x" 
 fac = App pF g where
                g = Lam "pF" $ Lam "n" $ App (App  (App ift (App iszero (Var "n"))) (church 1) ) (App (App prod (Var "n")) (App (Var "pF") (App (predU) (Var "n") ) ) )
                
+fac2 = App klop g where
+               g = Lam "klop" $ Lam "n" $ App (App  (App ift (App iszero (Var "n"))) (church 1) ) (App (App prod (Var "n")) (App (Var "klop") (App (predU) (Var "n") ) ) )
 
 --factproof = App (Lam "n" $ App (App  (App ift (App iszero (Var "n"))) (church 1) ) (App (App prod (Var "n")) (App predU (Var "n"))) )               
 
-klop = error "Te toca si quieres +5 pts"               
+klop = App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (App (l) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l)) (l) ) (l)) (l)
+
+l = Lam "a" $ Lam "b" $ Lam "c" $ Lam "d" $ Lam "e" $ Lam "f" $ Lam "g" $ Lam "h" $ Lam "i" $ Lam "j" $ Lam "k" $ Lam "l" $ Lam "m" $ Lam "n" $ Lam "o" $ Lam "p" $ Lam "q" $ Lam "s" $ Lam "t" $ Lam "u" $ Lam "v" $ Lam "w" $ Lam "x" $ Lam "y" $ Lam "z" $ Lam "r" $
+      App (Var "r") (App(App(App(App(App(App(App(App(App(App(App(App(App(App(App(App(App(App(App(App(App(App(App(App (App (App (Var "t") (Var "h") ) (Var "i")) (Var "s")) (Var "i")) (Var "s")) (Var "a")) (Var "f")) (Var "i")) (Var "x")) (Var "e")) (Var "d")) (Var "p")) (Var "o")) (Var "i")) (Var "n")) (Var "t")) (Var "c")) (Var "o")) (Var "m")) (Var "b")) (Var "i")) (Var "n")) (Var "a")) (Var "t")) (Var "o")) (Var "r"))
+
+
                
    --PRUEBAS
 
 --Debe de dar /s./z.s(s(s(s(s(s(sz))))))
 prueba1 = fn $ App (App suma (church 3)) (church 4)
---prueba11 = betaR $ App (App suma (church 3)) (church 4)
---prueba12 = betaR $ betaR $ App (App suma (church 3)) (church 4)
---prueba13 = betaR $ betaR $ betaR $ App (App suma (church 3)) (church 4)
---prueba14 = betaR $ betaR $ betaR $ betaR $ App (App suma (church 3)) (church 4)
 
 --Debe de dar /s./z.s(s(s(s(s(sz)))))
 prueba2 = fn $ App (App prod (church 3)) (church 2)
@@ -190,6 +192,8 @@ prueba3 = fn $ App fac (church 3)
 prueba4 = fn $ App fac (church 4)
 
 prueba5 = fn $ App fac (church 0)
+
+prueba6 = fn $ App fac2 (church 4)
 
 
 
