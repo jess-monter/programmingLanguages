@@ -131,9 +131,25 @@ pruebaSuc = App (Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n")
 
 pruebaSuc2 = App (Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n") (Var "s")) (Var "z"))) (Var "r")
 
---Predecesor de un numeral de Church 
-predU = Lam "m" $ App fstU (App (App (Var "m") (Var "s")) (Var "z"))
+shiftInc = Lam "p" $ App (App pair (App sndU (Var "p"))) (App suc (App sndU (Var "p")))
 
+zz = App (App pair (church 0)) (church 0)
+ss = Lam "p" $ App (App pair (App sndU (Var "p"))) (App (App suma (church 1)) (App sndU (Var "p")) )
+
+--ss = λp. pair (snd p) (scc (snd p))
+--prd = λm. fst (m ss zz)
+
+
+--Predecesor de un numeral de Church 
+predU = Lam "m" $ App fstU (App (App (Var "m") ss) zz)
+
+
+predU2 = Lam "n" $ Lam "f" $ Lam "x" $ App (App (Var "n") (App (Lam "g" $ Lam "h" $ App (Var "h") (App (Var "g") (Var "f") ) ) (Lam "u" $ Var "x") ) ) (Lam "u" $ Var "u")
+
+predU22 = Lam "n" $ Lam "f" $ Lam "x" $ App (Var "n") (App (App (Lam "g" $ Lam "h" $ App (Var "h") (App (Var "g") (Var "f") ) ) (Lam "u" $ Var "x") ) (Lam "u" $ Var "u"))
+
+
+predU3 = Lam "n" $ App (fstU) (App (Var "n") (App (shiftInc) (App (App pair (church 0)) (church 0) ) ))
 --Suma de naturales de Church 
 suma = Lam "n" $ Lam "m" $ App (App (Var "m") (suc)) (Var "n")
 
@@ -148,8 +164,10 @@ pF = Lam "f" $ App (Lam "x" $ App (Var "f") (App (Var "x") (Var "x"))) (Lam "x" 
 
 --Nuestra primer función recursiva
 fac = App pF g where
-               g = error "Te toca"
+               g = Lam "pF" $ Lam "n" $ App (App  (App ift (App iszero (Var "n"))) (church 1) ) (App (App prod (Var "n")) (App (Var "pF") (App (predU) (Var "n") ) ) )
                
+
+factproof = App (Lam "n" $ App (App  (App ift (App iszero (Var "n"))) (church 1) ) (App (App prod (Var "n")) (App predU (Var "n"))) )               
 
 klop = error "Te toca si quieres +5 pts"               
                
@@ -170,6 +188,8 @@ prueba3 = fn $ App fac (church 3)
 
 --Debe de dar /s./z.s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(s(sz)))))))))))))))))))))))
 prueba4 = fn $ App fac (church 4)
+
+prueba5 = fn $ App fac (church 0)
 
 
 
