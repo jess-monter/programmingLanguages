@@ -193,6 +193,7 @@ prueba4 = fn $ App fac (church 4)
 
 prueba5 = fn $ App fac (church 0)
 
+--Factorial con Klop
 prueba6 = fn $ App fac2 (church 4)
 
 
