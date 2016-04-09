@@ -127,11 +127,11 @@ sndU = Lam "p" $ App (Var "p") (false)
 --Sucesor de un numeral de Church
 suc = Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n") (Var "s")) (Var "z"))
 
-pruebaSuc = App (Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n") (Var "s")) (Var "z"))) (church 1)
+--pruebaSuc = App (Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n") (Var "s")) (Var "z"))) (church 1)
 
-pruebaSuc2 = App (Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n") (Var "s")) (Var "z"))) (Var "r")
+--pruebaSuc2 = App (Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n") (Var "s")) (Var "z"))) (Var "r")
 
-shiftInc = Lam "p" $ App (App pair (App sndU (Var "p"))) (App suc (App sndU (Var "p")))
+--shiftInc = Lam "p" $ App (App pair (App sndU (Var "p"))) (App suc (App sndU (Var "p")))
 
 zz = App (App pair (church 0)) (church 0)
 ss = Lam "p" $ App (App pair (App sndU (Var "p"))) (App (App suma (church 1)) (App sndU (Var "p")) )
@@ -144,12 +144,12 @@ ss = Lam "p" $ App (App pair (App sndU (Var "p"))) (App (App suma (church 1)) (A
 predU = Lam "m" $ App fstU (App (App (Var "m") ss) zz)
 
 
-predU2 = Lam "n" $ Lam "f" $ Lam "x" $ App (App (Var "n") (App (Lam "g" $ Lam "h" $ App (Var "h") (App (Var "g") (Var "f") ) ) (Lam "u" $ Var "x") ) ) (Lam "u" $ Var "u")
+--predU2 = Lam "n" $ Lam "f" $ Lam "x" $ App (App (Var "n") (App (Lam "g" $ Lam "h" $ App (Var "h") (App (Var "g") (Var "f") ) ) (Lam "u" $ Var "x") ) ) (Lam "u" $ Var "u")
 
-predU22 = Lam "n" $ Lam "f" $ Lam "x" $ App (Var "n") (App (App (Lam "g" $ Lam "h" $ App (Var "h") (App (Var "g") (Var "f") ) ) (Lam "u" $ Var "x") ) (Lam "u" $ Var "u"))
+--predU22 = Lam "n" $ Lam "f" $ Lam "x" $ App (Var "n") (App (App (Lam "g" $ Lam "h" $ App (Var "h") (App (Var "g") (Var "f") ) ) (Lam "u" $ Var "x") ) (Lam "u" $ Var "u"))
 
 
-predU3 = Lam "n" $ App (fstU) (App (Var "n") (App (shiftInc) (App (App pair (church 0)) (church 0) ) ))
+--predU3 = Lam "n" $ App (fstU) (App (Var "n") (App (shiftInc) (App (App pair (church 0)) (church 0) ) ))
 --Suma de naturales de Church 
 suma = Lam "n" $ Lam "m" $ App (App (Var "m") (suc)) (Var "n")
 
@@ -167,7 +167,7 @@ fac = App pF g where
                g = Lam "pF" $ Lam "n" $ App (App  (App ift (App iszero (Var "n"))) (church 1) ) (App (App prod (Var "n")) (App (Var "pF") (App (predU) (Var "n") ) ) )
                
 
-factproof = App (Lam "n" $ App (App  (App ift (App iszero (Var "n"))) (church 1) ) (App (App prod (Var "n")) (App predU (Var "n"))) )               
+--factproof = App (Lam "n" $ App (App  (App ift (App iszero (Var "n"))) (church 1) ) (App (App prod (Var "n")) (App predU (Var "n"))) )               
 
 klop = error "Te toca si quieres +5 pts"               
                
