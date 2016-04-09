@@ -32,20 +32,24 @@ fv e = case e of
    Lam x e -> filter (x/=) $ fv e
    App e1 e2 -> fv e1 ++ fv e2 
      
---fv $ Lam "x" $ Lam "y" $ App (App (Var "x") (Var "w")) (Var "z")
+pruebafv = fv $ Lam "x" $ Lam "y" $ App (App (Var "x") (Var "w")) (Var "z")
 
 
 --Para aplicar una sustitución en el cálculo lambda puro                  
 sust::LamU->Sust->LamU
 sust e (y,t) = case e of
-      Var x -> if x==y then t else e
-      Lam x w -> if (elem x $ fv(t)++[y]) then e else
+      Var x -> if x==y then t else Var x
+      Lam x w -> if (x `elem` ( y : fv t)) then e else
                Lam x $ sust w (y,t)
       App e1 e2 -> App (sust e1 (y,t)) (sust e2 (y,t))           
 
--- sust (Lam "x" $ Lam "z" $ App (App (Var "x")(Var "y")) (Var "z")) ("y", Var "r")
+pruebaSust = sust (Lam "x" $ Lam "z" $ App (App (Var "x")(Var "y")) (Var "z")) ("y", Var "r")
 
-                   
+pruebaSust2 = App suc (Lam "x" $ Lam "z" $ App (Var "s") (Var "z"))
+
+pruebaSustr = sust suc ("n", (Var "r"))
+pruebaSustcero = sust suc ("n", (Lam "x" $ Lam "z" $ (Var "z")))
+pruebaSust3 = sust suc ("n", (Lam "x" $ Lam "z" $ App (Var "s") (Var "z")))
 
 --Nos dice si hay un redex en un término del cálculo lambda puro            
 hayRedex::LamU->Bool
@@ -61,7 +65,7 @@ pruebaRedex = hayRedex $ App (Var "x") (Var "z")
 betaR::LamU -> LamU
 betaR e = case e of 
       Var x -> Var x
-      Lam x z -> Lam x (betaR z)
+      Lam x z -> if (hayRedex z) then Lam x (betaR z) else Lam x z
       App (Lam x e1) e2 -> sust e1 (x, e2)
       --App e1 (Lam x e2) -> App e1 (Lam x (betaR e2))
       App a b -> if (hayRedex a) then App (betaR a) b else if hayRedex b then App a (betaR b) else
@@ -74,10 +78,13 @@ betaR e = case e of
       --App e1 (Var x) -> App (betaR e1) (Var x)
 --      App e1 (Lam x e2) -> App (betaR e1) (Lam x e2)
 
-
+pruebaBeta = betaR $ App (Lam "x" $ (Var "x")) (Lam "y" $ (Var "y"))
 pruebaBeta1 = fn $ App (Var "x") (App (Lam "z" $ Var "z") (Var "y"))
 
-pruebaBeta = betaR $ App (Lam "x" $ (Var "x")) (Lam "y" $ (Var "y"))                        
+
+pruebaBeta2 = fn $ App (App (Lam "x" $ Lam "y" $ App (Var "x") (Var "y")) (Var "z")) (Var "s")
+
+pruebarep = App (App (Lam "x" $ Lam "y" $ App (App (Var "x" ) (Var "y")) (Var "x")) (Var "s")) (Var "z")
 
 --Calcula la forma normal de un término del cálculo lambda puro            
 fn::LamU -> LamU
@@ -92,8 +99,8 @@ pruebafnBeta = betaR $ betaR $ betaR $ betaR $ App (Lam "x" $ Var "z") (App (Lam
 
 --Dado un entero positivo, nos devuelve su representación como numeral de Church
 church::Int->LamU
-church 0 = Lam "x" $ Lam "z" $ Var "z"
-church n = Lam "x" $ Lam "z" $ auxChurch n
+church 0 = Lam "s" $ Lam "z" $ Var "z"
+church n = Lam "s" $ Lam "z" $ auxChurch n
                                  where auxChurch 0 = Var "z"
                                        auxChurch n = App (Var "s") (auxChurch (n-1))
 
@@ -120,6 +127,10 @@ sndU = Lam "p" $ App (Var "p") (false)
 --Sucesor de un numeral de Church
 suc = Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n") (Var "s")) (Var "z"))
 
+pruebaSuc = App (Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n") (Var "s")) (Var "z"))) (church 1)
+
+pruebaSuc2 = App (Lam "n" $ Lam "s" $ Lam "z" $ App (Var "s") (App (App (Var "n") (Var "s")) (Var "z"))) (Var "r")
+
 --Predecesor de un numeral de Church 
 predU = Lam "m" $ App fstU (App (App (Var "m") (Var "s")) (Var "z"))
 
@@ -127,7 +138,9 @@ predU = Lam "m" $ App fstU (App (App (Var "m") (Var "s")) (Var "z"))
 suma = Lam "n" $ Lam "m" $ App (App (Var "m") (suc)) (Var "n")
 
 --Productor de numerales de Church
-prod = Lam "n" $ Lam "m" $ App (App (Var "m") (suma)) (Var "n")
+--prod = Lam "n" $ Lam "m" $ App (App (Var "m") (suma)) (Var "n")
+
+prod = Lam "n" $ Lam "m" $ Lam "s" $ App (Var "m") (App (Var "n") (Var "s"))
 
 --Operador de punto fijo (Curry-Roser)
 pF = Lam "f" $ App (Lam "x" $ App (Var "f") (App (Var "x") (Var "x"))) (Lam "x" $ App (Var "f") (App (Var "x") (Var "x")))
@@ -144,10 +157,10 @@ klop = error "Te toca si quieres +5 pts"
 
 --Debe de dar /s./z.s(s(s(s(s(s(sz))))))
 prueba1 = fn $ App (App suma (church 3)) (church 4)
-prueba11 = betaR $ App (App suma (church 3)) (church 4)
-prueba12 = betaR $ betaR $ App (App suma (church 3)) (church 4)
-prueba13 = betaR $ betaR $ betaR $ App (App suma (church 3)) (church 4)
-prueba14 = betaR $ betaR $ betaR $ betaR $ App (App suma (church 3)) (church 4)
+--prueba11 = betaR $ App (App suma (church 3)) (church 4)
+--prueba12 = betaR $ betaR $ App (App suma (church 3)) (church 4)
+--prueba13 = betaR $ betaR $ betaR $ App (App suma (church 3)) (church 4)
+--prueba14 = betaR $ betaR $ betaR $ betaR $ App (App suma (church 3)) (church 4)
 
 --Debe de dar /s./z.s(s(s(s(s(sz)))))
 prueba2 = fn $ App (App prod (church 3)) (church 2)
