@@ -39,8 +39,9 @@ type Mem = [(LDir,Val)]
 {-Semántica dinámica-}
 
 accessMem :: LDir->Mem->Maybe Val
-accessMem = error "te toca"
---accessMem (L n) m = 
+--accessMem = error "te toca"
+accessMem (L n) m = if m==[] then Nothing  else if  (L n) == (fst (head m)) then (Just (snd(head m)))
+												else accessMem (L n) (tail m)
 
 update :: LDir->Val->Mem->Mem
 update = error "te toca"
