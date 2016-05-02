@@ -42,6 +42,11 @@ accessMem :: LDir->Mem->Maybe Val
 accessMem = error "te toca"
 --accessMem (L n) m = 
 
+encuentra::Eq a=>a->[a]->[a]
+encuentra _ [] = []
+encuentra x (y:ys) = if x == y then [y]
+      else encuentra x ys
+
 update :: LDir->Val->Mem->Mem
 update = error "te toca"
 

@@ -71,28 +71,6 @@ w e vars = case e of
                                             (Deriv (ctx2, e2', t2), vars2) = w (Var y) vars1 in
                                             let ctx3 = ctx1++ctx2 in
                                                 (Deriv (ctx3, AppT e1' e2', t2), vars2)
-            App (App (Var "x") (Var "y")) (Var "z") -> let (Deriv (ctx1, e1', t1), vars1) = w (Var "x") vars
-                                                           (Deriv (ctx2, e2', t2), vars2) = w (Var "y") vars1 where ctx2 = [("y", (X 3))]
-                                                           (Deriv (ctx3, e3', t3), vars3) = w (Var "z") vars2 where ctx3 = [("z", (X 4))] in
-                                                           (Deriv ([("x", ((X 3) :-> (X 4) :-> (X 0))), ("y", (X 3)), ("z", (X 4))], AppT (AppT (VarT "x") (VarT "y")) (VarT "z"), t1), vars3)
-            App (App (Var "x") (Var "z")) (App (Var "y") (Var "z")) -> (Deriv ([("x", ((X 6) :-> (X 4) :-> (X 0))), ("z", (X 6)), ("y", ((X 6):->(X 4))), ("z", (X 6))], AppT (AppT (VarT "x") (VarT "z")) (AppT (VarT "y") (VarT "z")), (X 0)), vars)
-            App (Suma (VNum 1) (Var "n")) (Var "w") -> error "No se pudo unificar."
-            App (Var "g") (App (Var "f") (Prod (VNum 3) (Var "z"))) -> (Deriv ([("g", ((X 2):->(X 0))), ("f", (TNat:->(X 2))), ("z", TNat)], AppT (VarT "g") (AppT (VarT "f") (ProdT (VNumT 3) (VarT "z"))) , (X 0)), vars)
-
-            App e1 e2 -> let (Deriv (ctx1, e1', t1), vars1) = w e1 vars
-                             (Deriv (ctx2, e2', t2), vars2) = w e2 vars1 in
-                             let ctx3 = ctx1++ctx2 in
-                             (Deriv (ctx3, AppT e1' e2', t1), vars2)
-            Lam "x" (Lam "y"  (Var "y")) -> let (Deriv (ctx1, e1', t1), vars1) = w (Var "y") vars
-                                                (Deriv (ctx2, e2', t2), vars2) = w (Var "x") vars1 in
-                                                (Deriv ([], LamT "x" (X 1) (LamT "y" (X 0) (VarT "y")), (t2 :-> t1 :-> t1)), vars2)
-            Lam "s" (Lam "z" (App (Var "s") (Var "z"))) -> (Deriv ([], LamT "s" ((X 2) :-> (X 0)) (LamT "z" (X 2) (AppT (VarT "s")( VarT "z"))),  (((X 2):->(X 0)):->((X 2):->(X 0)))), vars)
-            Lam "f" (Lam "x" (Lam "y" (App (Var "f") (Suma (Var "x") (Var "y"))))) -> (Deriv ([], (LamT "f" (TNat:->X 0) (LamT "x" TNat (LamT "y" TNat (AppT (VarT "f") (SumaT (VarT "x") (VarT "y")))))), ((TNat :->(X 0)):->(TNat:->(TNat:-> (X 0))))), vars)
-            Lam "x" (Lam "y" (Ifte (VBool True) (App (Var "f") (Var "x")) (Var "y"))) -> (Deriv ([("f", ((X 2):->(X 3)))], LamT "x" (X 2) (LamT "y" (X 3) (IfteT (VBoolT True) (AppT (VarT "f") (VarT "x")) (VarT "y"))), ((X 2) :-> ((X 3) :-> (X 3)))), vars)
-            Lam x e1 -> let (Deriv (ctx1, e1', t1), vars1) = w e1 vars in
-                             let ctx2 = ctx1 in
-                            (Deriv (ctx2, LamT x  (X n) e1', t1), vars1) where X n = newVT vars
-            Ifte (Iszero (Suma (VNum 2) (VNum 0))) (App (Var "f") (Var "y")) (VBool False) -> (Deriv ([("f", ((X 2):->TBool)), ("y", (X 2))], IfteT (IszeroT (SumaT (VNumT 2) (VNumT 0))) (AppT (VarT "f") (VarT "y")) (VBoolT False) , TBool), vars)
 
 
 wctx :: Ctx -> Ctx
