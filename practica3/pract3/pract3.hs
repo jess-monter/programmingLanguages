@@ -46,23 +46,21 @@ freeVars t = case t of
                 (Let x e r) -> filter (x/=) ((freeVars e) ++ (freeVars r))
 
 --   Sustitución
--- subst e x r  debe devolver e[x:=r].
---sust :: EAB -> Ident -> EAB -> EAB
---sust (VNum a) x r = VNum a
---sust (VBol b) x r = VBol b
---sust (Var v) x r = if (v == x) then r else Var v
---sust (Suma e1 e2) x r = Suma (sust e1 x r) (sust e2 x r)
---sust (Prod e1 e2) x r = Prod (sust e1 x r) (sust e2 x r)
---sust (Let (Var varSust) exp1 exp2) x r = if varSust `elem` (x:(freeVars r))
---                                           then (Let (Var varSust) exp1 exp2) 
---                                           else (Let (Var varSust) (sust exp1 x r) (sust exp2 x r))
---sust (Ifte e1 e2 e3) x r =  (Ifte (sust e1 x r) (sust e2 x r) (sust e3 x r))
---sust (Suc e) x r = Suc(sust e x r)
---sust (Pred e) x r = Pred(sust e x r)
---sust (Iszero e) x r = Iszero(sust e x r)
+--subst e x r  debe devolver e[x:=r].
+sust :: EAB -> String -> EAB -> EAB
+sust (VNum a) x r = VNum a
+sust (VBool b) x r = VBool b
+sust (Var v) x r = if (v == x) then r else Var v
+sust (Suma e1 e2) x r = Suma (sust e1 x r) (sust e2 x r)
+sust (Prod e1 e2) x r = Prod (sust e1 x r) (sust e2 x r)
+sust (Let (varSust) exp1 exp2) x r = if varSust `elem` (x:(freeVars r))
+                                           then (Let (varSust) exp1 exp2) 
+                                           else (Let (varSust) (sust exp1 x r) (sust exp2 x r))
+sust (Ifte e1 e2 e3) x r =  (Ifte (sust e1 x r) (sust e2 x r) (sust e3 x r))
+sust (Iszero e) x r = Iszero(sust e x r)
 
-
-
+pruebaSust1 = sust (Var "x") "x" (Var "y")
+pruebaSust2 = sust (Suma (Var "x") (Var "y")) "x" (VNum 4)
 
 {-EJERCICIOS:-}
 {-Semántica dinámica-}
@@ -81,11 +79,6 @@ remove (L n) m = if (L n) == (fst (head m)) then tail m else (head m):(remove (L
 
 pruebaR1 = remove (L 0) [(L 0,VBool True),(L 1,VNum 3)]
 
---Elimina repeticiones de una lista.
-toSet::Eq a=>[a]->[a]
-toSet [] = []
-toSet (x:xs) = x:(filter (x/=) $ toSet xs)
-
 update :: LDir->Val->Mem->Mem
 update (L n) val m = if accessMem (L n) m == Nothing then m++[((L n), val)] else update (L n) val (remove (L n) m)
 
@@ -94,6 +87,13 @@ pruebaU1 = update (L 3) (VNum 4) [(L 0,VBool True)]
 pruebaU2 = update (L 0) (VBool False) [(L 0,VBool True),(L 1,VNum 3)]
 --[(L 0,VBool False),(L 1,VNum 3)]
 
+--   Valores 
+-- Función que nos dice cuándo una expresión es un valor.
+esvalor :: EAB -> Bool
+esvalor t = case t of
+          VNum _ -> True
+          VBool _ -> True
+          _ -> False
 
 eval1 :: (Mem,EAB)->(Mem,EAB)
 eval1 (mem,e) = case e of 
@@ -101,51 +101,94 @@ eval1 (mem,e) = case e of
                (VNum n) -> (mem, VNum n)
                (VBool b) -> (mem, VBool b)
                (Suma (VNum n) (VNum m)) -> (mem, VNum (n+m))
-               (Suma t1 t2@(VNum m)) -> let t1' = snd(eval1 (mem,t1)) in (mem, Suma t1' t2)
-               (Suma t1@(VNum n) t2) -> let t2' = snd(eval1 (mem, t2)) in (mem, Suma t1 t2')
-               --(Suma t1 t2) -> (mem, Suma (eval1 t1) (eval1 t2))
+               (Suma t1 t2@(VNum m)) -> let (mem', t1') = eval1 (mem, t1) in (mem', Suma t1' t2)
+               (Suma t1@(VNum n) t2) -> let (mem', t2') = eval1 (mem, t2) in (mem', Suma t1 t2')
+               (Suma t1 t2) -> let (mem', t1') = eval1 (mem, t1) in
+                                    (mem', Suma t1' t2)
                (Prod (VNum n) (VNum m)) -> (mem, VNum (n*m))
-               (Prod t1 t2@(VNum m)) -> let t1' = snd(eval1 (mem, t1)) in (mem, Prod t1' t2)
-               --(Prod t1@(VNum n) t2) -> let t2' = eval1 t2 in (mem, Prod t1 t2')
-               --(Prod t1 t2) -> (mem, Prod (eval1 t1) (eval1 t2))
+               (Prod t1 t2@(VNum m)) -> let (mem', t1') = eval1 (mem, t1) in (mem', Suma t1' t2)
+               (Prod t1@(VNum n) t2) -> let (mem', t2') = eval1 (mem, t2) in (mem', Suma t1 t2')
+               (Prod t1 t2) -> let (mem', t1') = eval1 (mem, t1) in
+                                    (mem', Prod t1' t2)
+               (Ifte t1 t2 t3) -> if esvalor(t1) then 
+                                  if t1 == VBool True then let (mem', t2') = eval1(mem,t2) in (mem', t2') else let (mem', t3') = eval1(mem, t3) in (mem', t3')
+                                else
+                                  let (m', t1') = eval1 (mem, t1) in (m', Ifte t1' t2 t3)
+               (Iszero(VNum 0)) -> (mem, VBool True)
+               (Iszero(VNum _)) -> (mem, VBool False)
+               (Iszero t) -> let (m', t') = eval1(mem, t) in (m', Iszero(t'))
+               (Let x t1 t2) -> let (m', t1') = eval1(mem, t1) in 
+                                    let (m'', t2') = eval1 (m', t2) in 
+                                        (m'', sust t2' x t1')
+               (Menor (VNum n) (VNum m)) -> (mem, VBool (n<m))
+               (Menor t1 t2@(VNum m)) -> let (mem', t1') = eval1 (mem, t1) in
+                                             (mem', Menor t1' t2)
+               (Menor t1@(VNum n) t2) -> let (mem', t2') = eval1 (mem, t2) in
+                                             (mem', Menor t1 t2')
+               (Menor t1 t2) -> let (mem', t1') = eval1 (mem, t1) in
+                                    (mem', Menor t1' t2)
+               (Eq (VBool b) (VBool c)) -> (mem, VBool (b==c))
+               (Eq (VNum n) (VNum m)) -> (mem, VBool (n==m))
+               (Eq t1 t2@(VBool m)) -> let (mem', t1') = eval1 (mem, t1) in
+                                          (mem', Eq t1' t2)
+               (Eq t1 t2@(VNum m)) -> let (mem', t1') = eval1 (mem, t1) in
+                                          (mem', Eq t1' t2)
+               (Eq t1@(VBool n) t2) -> let (mem', t2') = eval1 (mem, t2) in
+                                          (mem', Eq t1 t2')
+               (Eq t1@(VNum n) t2) -> let (mem', t2') = eval1 (mem, t2) in
+                                          (mem', Eq t1 t2')
+               (Eq t1 t2) -> let (mem', t1') = eval1 (mem, t1) in
+                                          (mem', Eq t1' t2)
+               (Neg (VBool True)) -> (mem, (VBool False))
+               (Neg (VBool False)) -> (mem, (VBool True))
+               (Neg t1) -> let (mem', t1') = eval1 (mem, t1) in
+                              (mem', Neg t1')
+               (Asig (Var "x") (VNum 3)) -> let mem' = (update (L 1) (VNum 3) mem) in (mem', Var "x")
 
-
---eval1p :: Asa -> Asa
---eval1p t = case t of
---            (VNum n) -> VNum n
---            (VBol b) -> VBol b
---            (Var x) -> Var x
---            (Suma (VNum n) (VNum m)) -> VNum (n+m)
---            (Suma t1 t2@(VNum m)) -> let t1' = eval1p t1 in Suma t1' t2
---            (Suma t1@(VNum n) t2) -> let t2' = eval1p t2 in Suma t1 t2'
---            (Suma t1 t2) -> Suma (eval1p t1) (eval1p t2)
---            (Prod (VNum n) (VNum m)) -> VNum (n*m)
---            (Prod t1 t2@(VNum m)) -> let t1' = eval1p t1 in Prod t1' t2
---            (Prod t1@(VNum n) t2) -> let t2' = eval1p t2 in Prod t1 t2'
---            (Prod t1 t2) -> Prod (eval1p t1) (eval1p t2)
---            (Let (Var x) e1 e2) -> eval1p $ sust (eval1p e2) x (eval1p e1)
---            (Ifte t1 t2 t3) ->  if esvalor(t1) then 
---                                  if t1 == VBol True then eval1p(t2) else eval1p(t3)
---                                else
---                                  eval1p (Ifte (eval1p t1) t2 t3)
---            (Suc (VNum n)) -> VNum (n+1)
---            (Suc t) -> Suc(eval1p t)
---            (Pred (VNum 0)) -> VNum 0
---            (Pred (VNum n)) -> VNum (n-1)
---            (Pred t) -> Pred(eval1p t)
---            (Iszero(VNum 0)) -> VBol True
---            (Iszero(VNum _)) -> VBol False
---            (Iszero t) -> Iszero(eval1p t)
-
+--Asig EAB EAB 
+--Ref EAB 
+--Deref EAB 
+--L Int
+--Seq EAB EAB 
+--While EAB EAB 
+--Or EAB EAB
+--Unit deriving (Show,Eq)
 
 pruebaEval1 = eval1 ([(L 1, VNum 4)],Suma (VNum 2) (VNum 3))
 --([(L 1,VNum 4)],VNum 5)
+pruebaEval2 = eval1 ([(L 1, VNum 4)],Suma (VNum 2) (Suma (VNum 4) (VNum 3)))
+--([(L 1,VNum 4)],Suma (VNum 2) (VNum 7))
+pruebaEval21 = eval1 ([(L 1, VNum 4)],Suma (Suma (VNum 2) (VNum 4) ) (Suma (VNum 4) (VNum 3)))
+--([(L 1,VNum 4)],Suma (VNum 6) (Suma (VNum 4) (VNum 3)))
+pruebaEval3 = eval1 ([(L 1, VNum 4)], Ifte (VBool True) (Suma (VNum 3) (VNum 3)) (VNum 4))
+--([(L 1,VNum 4)],VNum 6)
+pruebaEval4 = eval1 ([(L 1, VNum 4)], Ifte (Iszero(VNum 0)) (Suma (VNum 3) (VNum 3)) (VNum 4))
+--([(L 1,VNum 4)],Ifte (VBool True) (Suma (VNum 3) (VNum 3)) (VNum 4))
+pruebaEval5 = eval1 ([(L 1, VNum 4)], Ifte (Iszero (VNum 3)) (Suma (VNum 3) (VNum 3)) (VNum 4))
+--([(L 1,VNum 4)],Ifte (VBool False) (Suma (VNum 3) (VNum 3)) (VNum 4))       
+pruebaEval6 = eval1 $ ([(L 1,VNum 4)], Let "x" (Var "y") (Var "x"))
+--([(L 1,VNum 4)],Var "y")
+pruebaEval7 = eval1 $ ([(L 1,VNum 4)], Let "x" (Suma (VNum 4) (VNum 3) ) (Var "x"))
+--([(L 1,VNum 4)],VNum 7)
+pruebaEval8 = eval1 $ ([(L 1, VNum 4)], Menor (VNum 8) (VNum 3))
+--([(L 1,VNum 4)],VBool False)
+pruebaEval9 = eval1 $ ([(L 1, VNum 4)], Menor (Suma (VNum 8) (VNum 9) ) (VNum 3))
+--([(L 1,VNum 4)],Menor (VNum 17) (VNum 3))
+pruebaEval10 = eval1 $ ([(L 1, VNum 4)], Menor (Suma (VNum 8) (VNum 9) ) (Suma (VNum 3) (VNum 7) ))
+--([(L 1,VNum 4)],Menor (VNum 17) (Suma (VNum 3) (VNum 7)))
+pruebaEval11 = eval1 $ ([(L 1, VNum 4)], Eq (Suma (VNum 8) (VNum 9) ) (Suma (VNum 3) (VNum 7) ))
+--([(L 1,VNum 4)],Eq (VNum 17) (Suma (VNum 3) (VNum 7)))
+pruebaEval12 = eval1 $ ([(L 1, VNum 4)], Eq (Iszero (VNum 3) ) (Iszero(VNum 7)))
+--([(L 1,VNum 4)],Eq (VBool False) (VBool False))
+pruebaEval13 = eval1 $ ([(L 1, VNum 4)], Neg (Iszero(VNum 0)))
+--([(L 1,VNum 4)],Neg (VBool True))
+pruebaEval14 = eval1 $ ([(L 1, VNum 4)], Asig (Var "x") (VNum 3))
 
-                           
+
 evals :: (Mem,EAB)->(Mem,EAB)
 evals = error "te toca"
 
-interp :: EAB->EAB
+interp :: EAB->EAB 
 interp = error "te toca"                     
 
 
