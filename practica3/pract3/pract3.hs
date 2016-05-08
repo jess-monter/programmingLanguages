@@ -87,6 +87,12 @@ pruebaU1 = update (L 3) (VNum 4) [(L 0,VBool True)]
 pruebaU2 = update (L 0) (VBool False) [(L 0,VBool True),(L 1,VNum 3)]
 --[(L 0,VBool False),(L 1,VNum 3)]
 
+fromJust :: Maybe a -> a
+fromJust Nothing = error "Maybe.fromJust: Nothing"
+fromJust (Just x) = x
+
+
+
 --   Valores 
 -- Función que nos dice cuándo una expresión es un valor.
 esvalor :: EAB -> Bool
@@ -106,8 +112,8 @@ eval1 (mem,e) = case e of
                (Suma t1 t2) -> let (mem', t1') = eval1 (mem, t1) in
                                     (mem', Suma t1' t2)
                (Prod (VNum n) (VNum m)) -> (mem, VNum (n*m))
-               (Prod t1 t2@(VNum m)) -> let (mem', t1') = eval1 (mem, t1) in (mem', Suma t1' t2)
-               (Prod t1@(VNum n) t2) -> let (mem', t2') = eval1 (mem, t2) in (mem', Suma t1 t2')
+               (Prod t1 t2@(VNum m)) -> let (mem', t1') = eval1 (mem, t1) in (mem', Prod t1' t2)
+               (Prod t1@(VNum n) t2) -> let (mem', t2') = eval1 (mem, t2) in (mem', Prod t1 t2')
                (Prod t1 t2) -> let (mem', t1') = eval1 (mem, t1) in
                                     (mem', Prod t1' t2)
                (Ifte t1 t2 t3) -> if esvalor(t1) then 
@@ -143,7 +149,15 @@ eval1 (mem,e) = case e of
                (Neg (VBool False)) -> (mem, (VBool True))
                (Neg t1) -> let (mem', t1') = eval1 (mem, t1) in
                               (mem', Neg t1')
-               (Asig (Var "x") (VNum 3)) -> let mem' = (update (L 1) (VNum 3) mem) in (mem', Var "x")
+               (Asig (Var m) (VNum n)) -> let mem' = (update (L 0) (VNum n) mem) in (mem', VNum n)
+               
+               (Ref t) -> if esvalor t then (mem, t) else let (mem', t') = eval1(mem, t) in (mem', Ref t')
+               (Deref (L n)) -> (mem, fromJust(accessMem (L n) mem))
+               (Deref t) -> let (mem', t') = eval1 (mem, t) in (mem', t')
+               (Or (VBool b) (VBool c)) -> if b==True then (mem, VBool True) else (mem, VBool c)
+               (Or t1 t2@(VBool c)) -> let (mem', t1') = eval1 (mem, t1')  in (mem', Or t1' t2)
+               (Or t1@(VBool c) t2) -> let (mem', t2') = eval1 (mem, t2') in (mem', Or t1 t2')
+               (Or t1 t2) -> let (mem', t1') = eval1 (mem, t1) in (mem', Or t1' t2)
 
 --Asig EAB EAB 
 --Ref EAB 
@@ -184,12 +198,28 @@ pruebaEval13 = eval1 $ ([(L 1, VNum 4)], Neg (Iszero(VNum 0)))
 --([(L 1,VNum 4)],Neg (VBool True))
 pruebaEval14 = eval1 $ ([(L 1, VNum 4)], Asig (Var "x") (VNum 3))
 
+pruebaEval15 = eval1 ([(L 1, VNum 4)], (Deref $ L 1))
+--([(L 1,VNum 4)],VNum 4)
+pruebaEval16 = evals ([(L 1, VNum 4)], Prod (Suma (VNum 2) (VNum 3)) (Deref $ L 1))
+--([(L 1,VNum 4)],VNum 20)
+
 
 evals :: (Mem,EAB)->(Mem,EAB)
-evals = error "te toca"
+evals (mem, t) | (esvalor t) = (mem,t)
+               | otherwise = evals (mem', t1)
+                where (mem', t1) = eval1 (mem, t)
+
+---- evalaux hace transiciones mientras no se llegue a un estado final.
+--evalaux :: Asa -> Asa
+--evalaux t | (esvalor t) = t
+--          | otherwise = evalaux t1
+--           where t1 = eval1p t
 
 interp :: EAB->EAB 
-interp = error "te toca"                     
+interp t = snd(evals([],t))
+
+pruebaInt1 = interp $ Let "x" (Ref $ VNum 3) (Suma (VNum 4) (Deref $ Var "x"))
+--VNum 7
 
 
 {-Aquí van tus cinco pruebas para la semántica dinámica-}
@@ -205,10 +235,21 @@ data Tipo = TInt | TBool | TUnit | TRef Tipo deriving (Show,Eq)
 --Los contextos ahora incluyen un conjunto exclusivo para direcciones de memoria.
 type Ctx = ([(String,Tipo)],[(LDir,Tipo)])
 
-
-vt :: Ctx->EAB->Tipo
-vt = error "te toca"
-
+--Implementacion de la semantica estatica (Juicios para tipos)
+vt :: Ctx -> EAB -> Tipo 
+vt ctx t = case t of
+               VNum _ -> TInt
+               VBool _ -> TBool
+               --Var v -> if ([(v,TBool)],[(L 0, TBool)]) `elem` ctx then TBool else if ([(v,TInt)],[(L 0, TInt)]) `elem` ctx then TInt else error ("La variable \"" ++ v ++ "\" no esta declarada en el contexto.")
+               --Var v -> if ([(v,TBool)],[]) `elem` ctx then TBool else if ([(v,TInt)],[]) `elem` ctx then TInt else error ("La variable \"" ++ v ++ "\" no esta declarada en el contexto.")
+               Suma e1 e2 -> if (vt ctx e1) == TInt && (vt ctx e2) == TInt then TInt else error "Alguno de los argumentos no es TInt"
+               Prod e1 e2 -> if (vt ctx e1) == TInt && (vt ctx e2) == TInt then TInt else error "Aguno de los argumentos no es TInt"
+               Let e1 e2 e3 -> (vt ctx e2)
+               Ifte e1 e2 e3 ->  if (vt ctx e1) == TBool then 
+                                    if (vt ctx e2) == (vt ctx e3) then 
+                                       (vt ctx e2) else error "El tipo de las ramas es incorrecto"                                        
+                                       else error "La guardia no es bool"
+               Iszero e -> if (vt ctx e) == TInt then TBool else error "El argumento no es TInt"
 
 {-Aquí van tus pruebas para la semántica estática-}
 
