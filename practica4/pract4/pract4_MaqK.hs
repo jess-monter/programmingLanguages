@@ -35,7 +35,15 @@ type Pila = [Marco]
 data Marco = MSumI () LamAB  | --Marco suma izq
              MSumD LamAB ()  | --Marco suma derecha
              MProdI () LamAB |
-             MProdD LamAB ()  deriving (Show,Eq)--Marco suma der 
+             MProdD LamAB () |
+             MIfteG () LamAB LamAB |
+             MenorD () LamAB |
+             MenorI LamAB () |
+             EqD () LamAB |
+             EqI LamAB () |
+             NegC () |
+             AppD () LamAB |
+             AppI LamAB () deriving (Show,Eq)--Marco suma der 
                               
 
 --Estados de la Máquina K
