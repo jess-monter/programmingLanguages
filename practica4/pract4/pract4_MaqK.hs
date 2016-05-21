@@ -72,7 +72,10 @@ type Ctx = [(Int,Tipo)]
 
 --Realiza la verificación de tipos
 vt :: Ctx->LamAB->Tipo
-vt = error "Te toca"
+vt ctx e = case e of
+               VBool _ -> TBool
+               Neg Fail -> TBool  
+               Neg e' -> if (vt ctx e' == TBool) then TBool else error "Mal tipada"
 
 
 
