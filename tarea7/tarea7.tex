@@ -1,0 +1,87 @@
+\documentclass[a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8x]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage[colorinlistoftodos]{todonotes}
+\usepackage{enumitem}
+\date{}
+
+\title{Tarea 7}
+\author{Jessica Monter -  Carlos Barrientos}
+
+\begin{document}
+\maketitle
+
+
+
+\begin{enumerate}
+\item Defina cpsdrop, una versión CPS para la función drop de Haskell. Muestre la evaluación de la expresión: $ cpsdrop \quad 2 \quad \left[a,b,c\right] \quad (\lambda x.x) $
+
+\begin{enumerate}
+\item
+$cpsdrop \quad n \quad \left[\hspace{3 pt} \right] \quad k \quad = \quad k \quad \left[\hspace{3 pt} \right]$
+\\ $cpsdrop \quad n \quad (x:xs) \quad k \quad = \quad if \quad iszero \quad n \quad then $
+\\ \hspace*{140 pt} $ k \quad (x:xs) \quad else $
+\\ \hspace*{140 pt} $ cpsdrop \quad n-1 \quad xs \quad k $
+
+\item Evaluación
+\\
+\\ $cpsdrop \quad 2 \quad \left[a,b,c\right] \quad (\lambda x.x) $
+\\ = $cpsdrop \quad 1 \quad \left[b,c\right] \quad (\lambda x.x)$
+\\ = $cpsdrop \quad 0 \quad \left[c\right] \quad (\lambda x.x)$
+\\ = $(\lambda x.x) \left[c\right]$
+\\ = $ \left[c\right] $
+
+\end{enumerate}
+\item Encuentre el término $ {\lambda}^{CPS} $ que corresponde a $ (\lambda x.x)yz $
+\\
+\\
+$ \left[[(\lambda x.x)yz \right]] $
+\\ = $\lambda k.\left[[ (\lambda x.x)y \right]] (\lambda w.\left[[ z \right]] (\lambda v.wkv)) $
+\\ \quad = $ \lambda k.\left[[(\lambda x.x)y \right]] (\lambda w.(\lambda r.rz)(\lambda v.wkv)) $
+\\ \quad = $ \lambda k.(( \lambda k_1.\left[[ \lambda x.x \right]] )(\lambda w_1.\left[[y \right]]( \lambda v_1. w_1 k_1 v_1)))( \lambda w.(\lambda r.rz)(\lambda v.wkv)) $
+\\ \quad = $ \lambda k.((\lambda k_1.(\lambda k_2.k_2(\lambda k_3\lambda x.\left[[ x \right]] k_3)))(\lambda w_1.\left[[ y \right]] ( \lambda v_1. w_1 k_1 v_1)))( \lambda w.(\lambda r.rz)(\lambda v.wkv))$
+\\ \quad = $ \lambda k.((\lambda k_1.(\lambda.k_2.k_2(\lambda k_3\lambda x.(\lambda k_4.k_4x)k_3)))(\lambda w_1.\left[[y \right]]( \lambda v_1. w_1 k_1 v_1)))( \lambda w.(\lambda r.rz)(\lambda v.wkv)) $
+\\ \quad = $ \lambda k.((\lambda k_1.(\lambda.k_2.k_2(\lambda k_3\lambda x.(\lambda k_4.k_4x)k_3)))(\lambda w_1.( \lambda s.sy )( \lambda v_1. w_1 k_1 v_1)))( \lambda w.(\lambda r.rz)(\lambda v.wkv)) $
+
+\item Considere las siguientes relaciones de subtipado $ A\leq B $, $ B\leq C $, $C\leq D$. Sean S y T tipos tales que:
+\\
+\\ \hspace*{100 pt} $S \overset { def }{ = } A + B  \rightarrow \left\lbrace l_2 : D\times C\right\rbrace$
+\\ \hspace*{100 pt} $T \overset { def }{ = } D + C  \rightarrow \left\lbrace l_1 : B+D, l_2: D\times A\right\rbrace$
+\\
+\\
+Determine con una derivación de subtipado si se cumple $S\leq T$, $T\leq S$ o ninguna.
+\begin{enumerate}
+\item $ S\leq T \longrightarrow $ No, pues:
+\\
+$ \frac {
+	\frac { 
+		\frac { No \quad se \quad sabe }{ D\le A } 
+		\frac { No\quad se\quad sabe }{ C\le B }  }{ D+C\le A+B } 
+	\frac { - }{ \left\lbrace { l }_{ 2 }:D\times C\right\rbrace \le \left\lbrace { l }_{ 1 }:B+D,\quad { l }_{ 2 }:\quad D\times A\right\rbrace  }}{ A + B \rightarrow \left\lbrace l_2: D\times C\right\rbrace \leq D+C \rightarrow \left\lbrace l_1: B + D, l_2: D\times A \right\rbrace}
+$
+\\
+\item $ T\leq S \longrightarrow $ Sí, pues:
+
+$ \frac {
+	\frac { 
+		\frac { \surd }{ A\le D } 
+		\frac { \surd  }{ C\le B }  }
+    { A+B\le D+C } 
+	\frac { \frac {\frac{\surd}{ D\leq D } \frac{\surd}{A\leq C} }{D\times A \leq D\times C} }{  \left\lbrace { l }_{ 1 }:B+D,\quad { l }_{ 2 }:\quad D\times A\right\rbrace \leq \left\lbrace { l }_{ 2 }:D\times C\right\rbrace  }}
+    {D+C \rightarrow \left\lbrace l_1: B + D, l_2: D\times A \right\rbrace \leq A + B \rightarrow \left\lbrace l_2: D\times C\right\rbrace}
+$
+\\
+\\
+Nota: Por transitividad $A\leq D$ y $ A\leq D$ y en el caso de los registros, se cumple por amplitud y profundidad.
+
+
+\end{enumerate}
+
+
+\end{enumerate}
+
+
+\end{document}
