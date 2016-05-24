@@ -68,6 +68,7 @@ pruebaQn5 = qn [] $ LamE "s" $ LamE "z" $ VarE "z"
 -- λ.λ.0
 pruebaQn6 = qn [] $ LamE "s" $ LamE "z" $ AppE (VarE "s") (VarE "z")
 -- λ.λ.10
+pruebaQn7 = qn [] $ AppE (LamE "z" $ AppE (VarE "z") (VarE "x")) (LamE "y" $ AppE(AppE (VarE "z") (VarE "x")) (VarE "y"))
 
 --Función que transforma un término anónimo en una expresión lambda.
 pn::CtxNom->A->E
@@ -85,6 +86,9 @@ sust = error "Te toca"
 br::A->A->A
 br = error "Te toca"
 
-
+quita:: Int -> [Int] -> [Int]
+quita n [] = []
+quita 0 (x:xs) = (x:xs)
+quita n (x:xs) = quita (n-1) (xs)
 
 
