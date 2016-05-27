@@ -22,9 +22,9 @@ data LamAB =  Var Int |
               Menor LamAB LamAB |
               Eq LamAB LamAB |
               Neg LamAB |
-              Lambda LamAB |
+              Lam Tipo LamAB |
               App LamAB LamAB |
-              Fix LamAB |
+              Fix Tipo LamAB |
               Fail |
               CatchOw LamAB LamAB deriving (Show,Eq)
 
@@ -43,7 +43,9 @@ data Marco = MSumI () LamAB  | --Marco suma izq
              EqI LamAB () |
              NegC () |
              AppD () LamAB |
-             AppI LamAB () deriving (Show,Eq)--Marco suma der 
+             AppI LamAB () |
+             CatchOwI () LamAB |
+             CatchOwD LamAB ()  deriving (Show,Eq)--Marco suma der 
                               
 
 --Estados de la Máquina K
@@ -62,12 +64,16 @@ esFinal e = case e of
             (Dv ([], VNum a)) -> True
             _ -> False
 
-
 pruebaEsFinal1 = esFinal $ Ev ([MSumI () $ VNum 4], VNum 4)
 --False
 pruebaEsFinal2 = esFinal $ Dv ([], VNum 4)
 --True
 
+esValor :: LamAB -> Bool
+esValor e = case e of 
+            VNum _ -> True
+            VBool _ -> True
+            _ -> False
 
 
 --Realiza un paso de evaluación en la máquina K
@@ -76,7 +82,46 @@ eval1 e = case e of
           Ev ([], Var a) -> Dv ([], VNum a)
           Ev ([], VNum a) -> Dv ([], VNum a)
           Ev ([], VBool a) -> Dv ([], VBool a)
-          Ev ([], Suma e1 e2) -> Ev ([MSumI() $ e2], e1)
+          Ev ([], Suma (VNum n) (VNum m)) -> Dv ([], VNum(n+m))
+          Ev ([], Suma e1 e2) -> if not(esValor e1) then Ev ([MSumI () e2], e1) else if not(esValor e2) then Ev ([MSumD e1 ()], e2) else Dv ([], Suma e1 e2)
+          --Ev ([MSumI () e2], e1) -> let e1' = eval1 (Ev([], e1)) in Dv([MSumD e2 ()]++e1', e1)
+          --Ev ([MSumD e1 ()], e2) -> let e2' = eval1 (Ev([], e2)) in Dv([], Suma e1 e2')
+          Ev ([], Prod (VNum n) (VNum m)) -> Dv ([], VNum(n+m))
+          --Ev ([], Prod e1 e2) -> if not(esValor e1) then Ev ([MProdI () e2], e1) else if not(esValor e2) then Ev ([MProdD e1 ()], e2) else Dv ([], Prod e1 e2)
+          --Ev ([MProdI () e2], e1) -> let e1' = eval1 (Ev([], e1)) in Dv([MProdD e2 ()]++e1', e1)
+          --Ev ([MProdD e1 ()], e2) -> let e2' = eval1 (Ev([], e2)) in Dv([], Prod e1 e2')
+          Ev ([], Neg e) -> if esValor e then 
+                                      if e == (VBool True) then (Dv([],VBool False)) else (Dv([],VBool True)) 
+                                      else Ev([NegC ()],e)
+          --Ev([NegC ()],e) -> Ev([], Neg e') where e' = eval2 e
+          Ev ([], Menor (VNum n) (VNum m)) -> Dv ([], VBool(n<m))
+          --Ev ([], Menor e1 e2) -> if not(esValor e1) then Ev ([MenorI () e2], e1) else if not(esValor e2) then Ev ([MenorD e1 ()], e2) else Dv ([], Menor e1 e2)
+          --Ev ([MenorI () e2], e1) -> let e1' = eval1 (Ev([], e1)) in Dv([MenorD e2 ()]++e1', e1)
+          --Ev ([MenorD e1 ()], e2) -> let e2' = eval1 (Ev([], e2)) in Dv([], Menor e1 e2')
+
+
+
+
+pruebaEval1 = eval1 $ Ev ([], Suma (Suma (VNum 1) (VNum 2)) (VNum 3))
+--Ev ([MSumI () (VNum 3)],Suma (VNum 1) (VNum 2))
+
+--eval2 :: LamAB -> LamAB
+--eval2 e = case e of
+--           (Var a) -> VNum a
+--           (VNum e) -> VNum e
+--           (VBool e) -> VBool e
+--           (Prod e1 e2) -> 
+--           (Ifte e1 e2 e3) ->
+--           (Let e1 e2 e3) ->
+--           (Eq e1 e2) ->
+--           (Menor e1 e2) ->
+--           (Neg e1) ->
+--           (Lam t e1) ->
+--           (CatchOw e1 e2) ->
+--           (App e1 e2) ->
+--           (Fix t e) ->
+--           (Fail) ->
+
 
 --Realiza una ejecución completa en la máquina K
 evalK :: EstadoMK->EstadoMK
@@ -93,7 +138,7 @@ type Ctx = [(Int,Tipo)]
 --Realiza la verificación de tipos
 vt :: Ctx->LamAB->Tipo
 vt ctx e = case e of
-               --Var x ->
+               Var x -> TInt
                VNum _ -> TInt
                VBool _ -> TBool
                Neg Fail -> TBool
@@ -105,32 +150,11 @@ vt ctx e = case e of
                Menor e1 e2 -> if (vt ctx e1) == TInt && (vt ctx e2) == TInt then TBool else error "Alguno de los argumentos no es TInt"
                Eq e1 e2 -> if (vt ctx e1) == (vt ctx e2) then (vt ctx e1) else error "Los argumentos no tienen el mismo tipo."
                Neg e1 -> if (vt ctx e1) == TBool then TBool else error "El argumento no es TBool"
-               --Lambda e1 -> 
-               App e1 e2 -> if fst(listaTipos (vt ctx e1)) == (vt ctx e2) then (vt ctx e1) else error "La aplicacion no esta bien tipada."
-
-
+               Lam t e1 -> t:->(vt ctx e1)
+               App e1 e2 -> if fst(listaTipos (vt ctx e1)) == (vt ctx e2) then snd(listaTipos(vt ctx e1)) else error "La aplicacion no esta bien tipada."
+               CatchOw e1 e2 -> if (vt ctx e1) == (vt ctx e2) then (vt ctx e1) else error "Los argumentos no tienen el mismo tipo."
+               Fix t e -> if t == (vt ctx e) then t else error "No esta bien tipado."
+               Fail -> TBool
 
 listaTipos :: Tipo -> (Tipo, Tipo)
-listaTipos TInt = (TInt, TInt)
-listaTipos TBool = (TBool, TBool)
 listaTipos (t1:->t2) = (t1,t2)
-
-
-
---data LamAB =  Var Int |
---              VNum Int   |
---              VBool Bool |
---              Suma LamAB LamAB | 
---              Prod LamAB LamAB |
---              Ifte LamAB LamAB LamAB |
---              Let Int LamAB LamAB |
---              Menor LamAB LamAB |
---              Eq LamAB LamAB |
---              Neg LamAB |
---              Lambda LamAB |
---              App LamAB LamAB |
---              Fix LamAB |
---              Fail |
---              CatchOw LamAB LamAB deriving (Show,Eq)
-
-

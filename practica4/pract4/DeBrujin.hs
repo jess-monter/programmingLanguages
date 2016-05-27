@@ -45,14 +45,24 @@ creaCtxNom e = case e of
                (VarE x) -> [x]
                (LamE x (VarE y)) -> if x==y then [x] else (creaCtxNom (VarE y) ++ [x])
 
+freeVars :: E->[String]
+freeVars e  = case e of 
+               (VarE v) -> [v]
+               (LamE x e1) -> filter (x/=) (freeVars(e1))
+               (AppE e1 e2) -> (freeVars e1) ++ (freeVars e2)
+
+pruebaFV = freeVars $ LamE "s" $ LamE "z" $ AppE (VarE "s") (LamE "x" $ AppE (VarE "s") (VarE "z"))
+
 --Función que transforma una expresión a un término anónimo.
 qn::CtxNom->E->A
 qn ctxNom e = case e of
-               (VarE x) -> if not (x `elem` ctxNom) then VarA (findIndex x ([x] ++ ctxNom)) else VarA (findIndex x ctxNom)
+               (VarE x) -> if not (x `elem` ctxNom) then VarA 0 else VarA (findIndex x ctxNom)
                (LamE x (VarE y)) -> if x == y then  LamA (VarA 0) else LamA (VarA (findIndex y ctxNom))
                (LamE x e1) -> LamA (qn (ctxNom) e1)
-               (AppE (VarE x) (VarE y)) -> AppA (qn [x, y] (VarE x)) (qn [x, y] (VarE y))
+               (AppE (VarE x) (VarE y)) -> AppA (qn [x, y] (VarE x)) (qn (ctxNom++[y]) (VarE y))
                (AppE e1 e2) -> AppA (qn ctxNom e1) (qn ctxNom e2)
+
+
 
 pruebaQn0 = qn ["x","y"] $ AppE (AppE (VarE "z") (VarE "x")) (LamE "y" $ AppE (AppE (VarE "z") (VarE "x")) (VarE "y"))
 --(1 0) (λ.(2 1) 0)
@@ -69,6 +79,8 @@ pruebaQn5 = qn [] $ LamE "s" $ LamE "z" $ VarE "z"
 pruebaQn6 = qn [] $ LamE "s" $ LamE "z" $ AppE (VarE "s") (VarE "z")
 -- λ.λ.10
 pruebaQn7 = qn [] $ AppE (LamE "z" $ AppE (VarE "z") (VarE "x")) (LamE "y" $ AppE(AppE (VarE "z") (VarE "x")) (VarE "y"))
+
+pruebaQn8 = qn [] $ AppE (AppE(VarE "x") (VarE "z")) (VarE "y")
 
 --Función que transforma un término anónimo en una expresión lambda.
 pn::CtxNom->A->E
