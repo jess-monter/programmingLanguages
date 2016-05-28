@@ -37,8 +37,8 @@ data Marco = MSumI () LamAB  | --Marco suma izq
              MProdI () LamAB |
              MProdD LamAB () |
              MIfteG () LamAB LamAB |
-             MenorD () LamAB |
-             MenorI LamAB () |
+             MenorI () LamAB |
+             MenorD LamAB () |
              EqD () LamAB |
              EqI LamAB () |
              NegC () |
@@ -83,45 +83,72 @@ eval1 e = case e of
           Ev ([], VNum a) -> Dv ([], VNum a)
           Ev ([], VBool a) -> Dv ([], VBool a)
           Ev ([], Suma (VNum n) (VNum m)) -> Dv ([], VNum(n+m))
-          Ev ([], Suma e1 e2) -> if not(esValor e1) then Ev ([MSumI () e2], e1) else if not(esValor e2) then Ev ([MSumD e1 ()], e2) else Dv ([], Suma e1 e2)
-          --Ev ([MSumI () e2], e1) -> let e1' = eval1 (Ev([], e1)) in Dv([MSumD e2 ()]++e1', e1)
-          --Ev ([MSumD e1 ()], e2) -> let e2' = eval1 (Ev([], e2)) in Dv([], Suma e1 e2')
-          Ev ([], Prod (VNum n) (VNum m)) -> Dv ([], VNum(n+m))
-          --Ev ([], Prod e1 e2) -> if not(esValor e1) then Ev ([MProdI () e2], e1) else if not(esValor e2) then Ev ([MProdD e1 ()], e2) else Dv ([], Prod e1 e2)
-          --Ev ([MProdI () e2], e1) -> let e1' = eval1 (Ev([], e1)) in Dv([MProdD e2 ()]++e1', e1)
-          --Ev ([MProdD e1 ()], e2) -> let e2' = eval1 (Ev([], e2)) in Dv([], Prod e1 e2')
+          Ev ([], Suma e1 e2) -> if not(esValor e1) then  Ev ([MSumI () e2], e1) else if not(esValor e2) then Ev ([MSumD e1 ()], e2) else eval1 (Dv ([], Suma e1 e2))
+          Ev ([MSumI () e2], e1) -> let e1' = eval1p e1 in eval1 (Ev([], Suma e1' e2))
+          Ev ([MSumD e1 ()], e2) -> let e2' = eval1p e2 in eval1 (Ev([], Suma e1 e2'))
+          Ev ([], Prod (VNum n) (VNum m)) -> Dv ([], VNum(n*m))
+          Ev ([], Prod e1 e2) -> if not(esValor e1) then  Ev ([MProdI () e2], e1) else if not(esValor e2) then Ev ([MProdD e1 ()], e2) else eval1 (Dv ([], Prod e1 e2))
+          Ev ([MProdI () e2], e1) -> let e1' = eval1p e1 in eval1 (Ev([], Prod e1' e2))
+          Ev ([MProdD e1 ()], e2) -> let e2' = eval1p e2 in eval1 (Ev([], Prod e1 e2'))
           Ev ([], Neg e) -> if esValor e then 
                                       if e == (VBool True) then (Dv([],VBool False)) else (Dv([],VBool True)) 
                                       else Ev([NegC ()],e)
-          --Ev([NegC ()],e) -> Ev([], Neg e') where e' = eval2 e
+          Ev([NegC ()],e) -> Ev([], Neg e') where e' = eval1p e
           Ev ([], Menor (VNum n) (VNum m)) -> Dv ([], VBool(n<m))
-          --Ev ([], Menor e1 e2) -> if not(esValor e1) then Ev ([MenorI () e2], e1) else if not(esValor e2) then Ev ([MenorD e1 ()], e2) else Dv ([], Menor e1 e2)
-          --Ev ([MenorI () e2], e1) -> let e1' = eval1 (Ev([], e1)) in Dv([MenorD e2 ()]++e1', e1)
-          --Ev ([MenorD e1 ()], e2) -> let e2' = eval1 (Ev([], e2)) in Dv([], Menor e1 e2')
+          Ev ([], Menor e1 e2) -> if not(esValor e1) then Ev ([MenorI () e2], e1) else if not(esValor e2) then Ev ([MenorD e1 ()], e2) else Dv ([], Menor e1 e2)
+          Ev ([MenorI () e2], e1) -> let e1' = eval1p e1 in eval1(Ev([], Menor e1' e2))
+          Ev ([MenorD e1 ()], e2) -> let e2' = eval1p e2 in eval1(Ev([], Menor e1 e2'))
 
 
 
 
 pruebaEval1 = eval1 $ Ev ([], Suma (Suma (VNum 1) (VNum 2)) (VNum 3))
 --Ev ([MSumI () (VNum 3)],Suma (VNum 1) (VNum 2))
+pruebaEval2 = eval1 $ Ev ([], Suma (VNum 2) (VNum 3))
 
---eval2 :: LamAB -> LamAB
---eval2 e = case e of
---           (Var a) -> VNum a
---           (VNum e) -> VNum e
---           (VBool e) -> VBool e
---           (Prod e1 e2) -> 
---           (Ifte e1 e2 e3) ->
---           (Let e1 e2 e3) ->
---           (Eq e1 e2) ->
---           (Menor e1 e2) ->
---           (Neg e1) ->
---           (Lam t e1) ->
---           (CatchOw e1 e2) ->
---           (App e1 e2) ->
---           (Fix t e) ->
---           (Fail) ->
+pruebaEval3 = eval1 $ Ev ([], Suma (Suma (VNum 1) (VNum 2)) (Suma (VNum 4) (VNum 3)))
 
+eval1p :: LamAB -> LamAB
+eval1p t = case t of
+            (VNum n) -> VNum n
+            (VBool b) -> VBool b
+            (Var x) -> Var x
+            (Suma (VNum n) (VNum m)) -> VNum (n+m)
+            (Suma t1 t2@(VNum m)) -> let t1' = eval1p t1 in Suma t1' t2
+            (Suma t1@(VNum n) t2) -> let t2' = eval1p t2 in Suma t1 t2'
+            (Suma t1 t2) -> Suma (eval1p t1) (eval1p t2)
+            (Prod (VNum n) (VNum m)) -> VNum (n*m)
+            (Prod t1 t2@(VNum m)) -> let t1' = eval1p t1 in Prod t1' t2
+            (Prod t1@(VNum n) t2) -> let t2' = eval1p t2 in Prod t1 t2'
+            (Prod t1 t2) -> Prod (eval1p t1) (eval1p t2)
+            --(Let (Var x) e1 e2) -> eval1p $ sust (eval1p e2) x (eval1p e1)
+            (Ifte t1 t2 t3) ->  if esValor(t1) then 
+                                  if t1 == VBool True then eval1p(t2) else eval1p(t3)
+                                else
+                                  eval1p (Ifte (eval1p t1) t2 t3)
+            (Menor (VNum n) (VNum m)) -> VBool (n<m)
+            (Menor t1 t2@(VNum m)) -> let t1' = eval1p t1 in
+                                             Menor t1' t2
+            (Menor t1@(VNum n) t2) -> let t2' = eval1p t2 in
+                                             Menor t1 t2'
+            (Menor t1 t2) -> let t1' = eval1p t1 in
+                                    Menor t1' t2
+            (Eq (VBool b) (VBool c)) -> VBool (b==c)
+            (Eq (VNum n) (VNum m)) -> VBool (n==m)
+            (Eq t1 t2@(VBool m)) -> let t1' = eval1p t1 in
+                                          Eq t1' t2
+            (Eq t1 t2@(VNum m)) -> let t1' = eval1p t1 in
+                                          Eq t1' t2
+            (Eq t1@(VBool n) t2) -> let t2' = eval1p t2 in
+                                          Eq t1 t2'
+            (Eq t1@(VNum n) t2) -> let t2' = eval1p t2 in
+                                          Eq t1 t2'
+            (Eq t1 t2) -> let t1' = eval1p t1 in
+                                          Eq t1' t2
+            (Neg (VBool True)) -> (VBool False)
+            (Neg (VBool False)) -> (VBool True)
+            (Neg t1) -> let t1' = eval1p t1 in
+                              Neg t1'
 
 --Realiza una ejecución completa en la máquina K
 evalK :: EstadoMK->EstadoMK
