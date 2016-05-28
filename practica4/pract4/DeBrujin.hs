@@ -40,6 +40,14 @@ findIndex :: String -> [String] -> Int
 findIndex x [] = error "Vacio"
 findIndex x (y:ys) = if x==y then (length (y:ys)) - 1 else (findIndex x ys)
 
+--nuevaVar :: String -> [String] -> String
+--nuevaVar x [] = x
+--nuevaVar x (y:ys) = if x `elem` (y:ys) then x else 
+
+findName :: Int -> [String] -> String
+findName x [] =  "z"
+findName x (y:ys) = if x == (length (y:ys))-1 then y else findName x ys
+
 creaCtxNom :: E -> CtxNom
 creaCtxNom e = case e of
                (VarE x) -> [x]
@@ -84,19 +92,48 @@ pruebaQn8 = qn [] $ AppE (AppE(VarE "x") (VarE "z")) (VarE "y")
 
 --Función que transforma un término anónimo en una expresión lambda.
 pn::CtxNom->A->E
-pn = error "Te toca"
+pn ctxNom e =case e of 
+             (VarA x) -> VarE (findName x ctxNom)
+             (LamA e1) -> LamE (findName 100 ctxNom) (pn ctxNom e1)
+             (AppA a1 a2) -> AppE (pn ctxNom a1) (pn ctxNom a2) 
+
+pruebaPn1 = pn ["x","y"] $ LamA $ AppA (AppA (VarA 0) (VarA 1)) (LamA $ AppA (AppA (VarA 1) (VarA 2)) (VarA 0))
+--λz.(z x) (λu.(z x) u)
+
+
+
 
 --Función que desplaza índices.
 shift::Int->Int->A->A  
-shift = error "Te toca"
+shift d c (VarA x) = if x < c then VarA x else VarA (x+d)
+shift d c (LamA e1) = LamA (shift d (c+1) e1 )
+shift d c (AppA a1 a2) = AppA (shift d c a1) (shift d c a2)
+
+pruebaS1 = shift 1 1 (LamA $ AppA (VarA 0) (VarA 2))
+--λ.0 3
 
 --Aplica una sustitución a un término anónimo.
 sust::A->Int->A->A
-sust = error "Te toca"
+sust (VarA n) j a = if n==j then a else (VarA n)
+sust (LamA t) j s = LamA (sust t (j+1) (shift 1 0 s))
+sust (AppA a1 a2) j s = AppA (sust a1 j s) (sust a1 j s)
+
+--n[j := s] = if n = j then s else n
+--(λ.t)[j := s] = λ.t[j + 1 := shift(1, 0, s)]
+--(tr)[j := s] = t[j := s]r[j := s]
+
+pruebaSust = sust (LamA $ AppA (AppA (VarA 0) (VarA 2)) (VarA 1)) 1 (LamA $ AppA (VarA 0) (VarA 2))
+--λ.(0 (λ.0 3)) 1
+
 
 --Realiza la beta reducción.
 br::A->A->A
-br = error "Te toca"
+br (LamA t) (s) = LamA (shift (-1) 0 (sust t 0 (shift 1 0 s)))
+
+pruebaBr = br (LamA $ AppA (AppA (VarA 1) (VarA 0)) (VarA 2)) (LamA $ VarA 0)
+--(0 (λ.0)) 1
+
+
 
 quita:: Int -> [Int] -> [Int]
 quita n [] = []

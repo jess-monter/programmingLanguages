@@ -39,8 +39,8 @@ data Marco = MSumI () LamAB  | --Marco suma izq
              MIfteG () LamAB LamAB |
              MenorI () LamAB |
              MenorD LamAB () |
-             EqD () LamAB |
-             EqI LamAB () |
+             EqI () LamAB |
+             EqD LamAB () |
              NegC () |
              AppD () LamAB |
              AppI LamAB () |
@@ -98,7 +98,10 @@ eval1 e = case e of
           Ev ([], Menor e1 e2) -> if not(esValor e1) then Ev ([MenorI () e2], e1) else if not(esValor e2) then Ev ([MenorD e1 ()], e2) else Dv ([], Menor e1 e2)
           Ev ([MenorI () e2], e1) -> let e1' = eval1p e1 in eval1(Ev([], Menor e1' e2))
           Ev ([MenorD e1 ()], e2) -> let e2' = eval1p e2 in eval1(Ev([], Menor e1 e2'))
-
+          Ev ([], Eq (VNum n) (VNum m)) -> Dv ([], VBool(n==m))
+          Ev ([], Eq e1 e2) -> if not(esValor e1) then Ev ([EqI () e2], e1) else if not(esValor e2) then Ev ([EqD e1 ()], e2) else Dv ([], Eq e1 e2)
+          Ev ([EqI () e2], e1) -> let e1' = eval1p e1 in eval1(Ev([], Eq e1' e2))
+          Ev ([EqD e1 ()], e2) -> let e2' = eval1p e2 in eval1(Ev([], Eq e1 e2'))
 
 
 
